@@ -109,11 +109,101 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const syncSelectedElements = () => {
         updateSelectedHighlights();
 
-        const selectedDetails = Array.from(state.selectedElements).map(elem => ({
-          tag: elem.tagName,
-          id: elem.id,
-          classes: Array.from(elem.classList).join(' ')
-        }));
+        const selectedDetails = Array.from(state.selectedElements).map(elem => {
+          const style = window.getComputedStyle(elem);
+
+          return {
+            tag: elem.tagName,
+            id: elem.id,
+            classes: Array.from(elem.classList).join(' '),
+            styles: {
+              // Tag Info
+              tagName: elem.tagName,
+              id: elem.id,
+              classList: Array.from(elem.classList).join(' '),
+
+              // Layout
+              display: style.display,
+              position: style.position,
+              top: style.top,
+              right: style.right,
+              bottom: style.bottom,
+              left: style.left,
+              width: style.width,
+              height: style.height,
+              maxWidth: style.maxWidth,
+              maxHeight: style.maxHeight,
+              minWidth: style.minWidth,
+              minHeight: style.minHeight,
+              boxSizing: style.boxSizing,
+
+              // Margin
+              marginTop: style.marginTop,
+              marginRight: style.marginRight,
+              marginBottom: style.marginBottom,
+              marginLeft: style.marginLeft,
+
+              // Padding
+              paddingTop: style.paddingTop,
+              paddingRight: style.paddingRight,
+              paddingBottom: style.paddingBottom,
+              paddingLeft: style.paddingLeft,
+
+              // Border
+              borderTop: style.borderTop,
+              borderTopWidth: style.borderTopWidth,
+              borderTopStyle: style.borderTopStyle,
+              borderTopColor: style.borderTopColor,
+              borderRight: style.borderRight,
+              borderRightWidth: style.borderRightWidth,
+              borderRightStyle: style.borderRightStyle,
+              borderRightColor: style.borderRightColor,
+              borderBottom: style.borderBottom,
+              borderBottomWidth: style.borderBottomWidth,
+              borderBottomStyle: style.borderBottomStyle,
+              borderBottomColor: style.borderBottomColor,
+              borderLeft: style.borderLeft,
+              borderLeftWidth: style.borderLeftWidth,
+              borderLeftStyle: style.borderLeftStyle,
+              borderLeftColor: style.borderLeftColor,
+
+              // Border Radius
+              borderTopLeftRadius: style.borderTopLeftRadius,
+              borderTopRightRadius: style.borderTopRightRadius,
+              borderBottomRightRadius: style.borderBottomRightRadius,
+              borderBottomLeftRadius: style.borderBottomLeftRadius,
+
+              // Typography
+              fontFamily: style.fontFamily,
+              fontSize: style.fontSize,
+              fontWeight: style.fontWeight,
+              fontStyle: style.fontStyle,
+              fontVariant: style.fontVariant,
+              letterSpacing: style.letterSpacing,
+              lineHeight: style.lineHeight,
+              textAlign: style.textAlign,
+              textDecoration: style.textDecoration,
+              textIndent: style.textIndent,
+              textShadow: style.textShadow,
+              textTransform: style.textTransform,
+              whiteSpace: style.whiteSpace,
+              wordSpacing: style.wordSpacing,
+              wordBreak: style.wordBreak,
+              wordWrap: style.wordWrap,
+
+              // Colors & Background
+              color: style.color,
+              background: style.background,
+              backgroundColor: style.backgroundColor,
+              backgroundImage: style.backgroundImage,
+              backgroundPosition: style.backgroundPosition,
+              backgroundRepeat: style.backgroundRepeat,
+              backgroundSize: style.backgroundSize,
+              backgroundAttachment: style.backgroundAttachment,
+              opacity: style.opacity,
+            }
+          };
+        });
 
         const customEvent = new CustomEvent('my-extension-selected-elements', {
           detail: selectedDetails
@@ -153,11 +243,101 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
             updateSelectedHighlights();
 
-            const selectedDetails = Array.from(state.selectedElements).map(elem => ({
-              tag: elem.tagName,
-              id: elem.id,
-              classes: Array.from(elem.classList).join(' ')
-            }));
+            const selectedDetails = Array.from(state.selectedElements).map(elem => {
+              const style = window.getComputedStyle(elem);
+
+              return {
+                tag: elem.tagName,
+                id: elem.id,
+                classes: Array.from(elem.classList).join(' '),
+                styles: {
+                  // Tag Info
+                  tagName: elem.tagName,
+                  id: elem.id,
+                  classList: Array.from(elem.classList).join(' '),
+
+                  // Layout
+                  display: style.display,
+                  position: style.position,
+                  top: style.top,
+                  right: style.right,
+                  bottom: style.bottom,
+                  left: style.left,
+                  width: style.width,
+                  height: style.height,
+                  maxWidth: style.maxWidth,
+                  maxHeight: style.maxHeight,
+                  minWidth: style.minWidth,
+                  minHeight: style.minHeight,
+                  boxSizing: style.boxSizing,
+
+                  // Margin
+                  marginTop: style.marginTop,
+                  marginRight: style.marginRight,
+                  marginBottom: style.marginBottom,
+                  marginLeft: style.marginLeft,
+
+                  // Padding
+                  paddingTop: style.paddingTop,
+                  paddingRight: style.paddingRight,
+                  paddingBottom: style.paddingBottom,
+                  paddingLeft: style.paddingLeft,
+
+                  // Border
+                  borderTop: style.borderTop,
+                  borderTopWidth: style.borderTopWidth,
+                  borderTopStyle: style.borderTopStyle,
+                  borderTopColor: style.borderTopColor,
+                  borderRight: style.borderRight,
+                  borderRightWidth: style.borderRightWidth,
+                  borderRightStyle: style.borderRightStyle,
+                  borderRightColor: style.borderRightColor,
+                  borderBottom: style.borderBottom,
+                  borderBottomWidth: style.borderBottomWidth,
+                  borderBottomStyle: style.borderBottomStyle,
+                  borderBottomColor: style.borderBottomColor,
+                  borderLeft: style.borderLeft,
+                  borderLeftWidth: style.borderLeftWidth,
+                  borderLeftStyle: style.borderLeftStyle,
+                  borderLeftColor: style.borderLeftColor,
+
+                  // Border Radius
+                  borderTopLeftRadius: style.borderTopLeftRadius,
+                  borderTopRightRadius: style.borderTopRightRadius,
+                  borderBottomRightRadius: style.borderBottomRightRadius,
+                  borderBottomLeftRadius: style.borderBottomLeftRadius,
+
+                  // Typography
+                  fontFamily: style.fontFamily,
+                  fontSize: style.fontSize,
+                  fontWeight: style.fontWeight,
+                  fontStyle: style.fontStyle,
+                  fontVariant: style.fontVariant,
+                  letterSpacing: style.letterSpacing,
+                  lineHeight: style.lineHeight,
+                  textAlign: style.textAlign,
+                  textDecoration: style.textDecoration,
+                  textIndent: style.textIndent,
+                  textShadow: style.textShadow,
+                  textTransform: style.textTransform,
+                  whiteSpace: style.whiteSpace,
+                  wordSpacing: style.wordSpacing,
+                  wordBreak: style.wordBreak,
+                  wordWrap: style.wordWrap,
+
+                  // Colors & Background
+                  color: style.color,
+                  background: style.background,
+                  backgroundColor: style.backgroundColor,
+                  backgroundImage: style.backgroundImage,
+                  backgroundPosition: style.backgroundPosition,
+                  backgroundRepeat: style.backgroundRepeat,
+                  backgroundSize: style.backgroundSize,
+                  backgroundAttachment: style.backgroundAttachment,
+                  opacity: style.opacity,
+                }
+              };
+            });
 
             const customEvent = new CustomEvent('my-extension-selected-elements', {
               detail: selectedDetails

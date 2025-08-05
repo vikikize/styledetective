@@ -3,77 +3,111 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const { enabled, apiName, tabId } = message;
 
     const injectedSelectorLogic = (enabled) => {
-      const styleId = 'my-element-selector-styles';
-      if (!document.getElementById(styleId)) {
-        const style = document.createElement('style');
-        style.id = styleId;
-        style.textContent = `
-          .my-hover-outline {
-            outline: 2px solid #a78bfa !important;
-            outline-offset: 0 !important;
-            outline-style: solid !important;
-            cursor: pointer !important;
-          }
-          .my-selected-outline {
-            outline: 2px solid #f87171 !important;
-            outline-offset: 0 !important;
-            outline-style: solid !important;
-            cursor: pointer !important;
-          }
-        `;
-        document.head.appendChild(style);
-      }
-
       if (!window.__selectorState__) {
         window.__selectorState__ = {
           active: false,
           selectedElements: new Set(),
-          lastHovered: null,
           onMouseMove: null,
           onClick: null,
           handlersAttached: false,
+          hoverBox: null,
         };
       }
 
       const state = window.__selectorState__;
 
-      state.onMouseMove = (event) => {
-        if (!state.active) return;
+      // Create or reuse highlight overlay container
+      if (!window.__highlightOverlay__) {
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100vw';
+        overlay.style.height = '100vh';
+        overlay.style.pointerEvents = 'none';
+        overlay.style.zIndex = '2147483647';
+        window.__highlightOverlay__ = overlay;
+        document.body.appendChild(overlay);
+      }
+      const overlay = window.__highlightOverlay__;
 
-        const el = event.target;
-        if (!el) return;
-
-        if (
-          state.lastHovered &&
-          state.lastHovered !== el &&
-          !state.selectedElements.has(state.lastHovered)
-        ) {
-          state.lastHovered.classList.remove('my-hover-outline');
+      function clearHoverBox() {
+        if (state.hoverBox) {
+          if (overlay.contains(state.hoverBox)) {
+            overlay.removeChild(state.hoverBox);
+          }
+          state.hoverBox = null;
         }
+      }
 
-        if (!state.selectedElements.has(el)) {
-          el.classList.add('my-hover-outline');
-        }
+      function updateHoverBox(el) {
+        clearHoverBox();
+        if (!el || state.selectedElements.has(el)) return;
 
-        state.lastHovered = el;
-      };
+        const rect = el.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
 
-      state.onClick = (event) => {
-        if (!state.active) return;
+        const box = document.createElement('div');
+        box.style.position = 'fixed';
+        box.style.top = `${rect.top}px`;
+        box.style.left = `${rect.left}px`;
+        box.style.width = `${rect.width}px`;
+        box.style.height = `${rect.height}px`;
+        box.style.border = '2px solid #a78bfa';
+        box.style.borderRadius = '4px';
+        box.style.backgroundColor = 'rgba(167, 139, 250, 0.15)';
+        box.style.boxSizing = 'border-box';
 
-        event.preventDefault();
-        event.stopPropagation();
+        overlay.appendChild(box);
+        state.hoverBox = box;
+      }
 
-        const el = event.target;
+      function updateSelectedHighlights() {
+        overlay.querySelectorAll('.selected-highlight').forEach(el => el.remove());
 
-        if (state.selectedElements.has(el)) {
-          state.selectedElements.delete(el);
-          el.classList.remove('my-selected-outline');
-        } else {
-          state.selectedElements.add(el);
-          el.classList.remove('my-hover-outline');
-          el.classList.add('my-selected-outline');
-        }
+        const selectedArray = Array.from(state.selectedElements);
+
+        selectedArray.forEach((el, index) => {
+          const rect = el.getBoundingClientRect();
+          if (rect.width === 0 || rect.height === 0) return;
+
+          const box = document.createElement('div');
+          box.className = 'selected-highlight';
+          box.style.position = 'fixed';
+          box.style.top = `${rect.top}px`;
+          box.style.left = `${rect.left}px`;
+          box.style.width = `${rect.width}px`;
+          box.style.height = `${rect.height}px`;
+          box.style.border = '2px solid #f87171';
+          box.style.borderRadius = '4px';
+          box.style.backgroundColor = 'rgba(248, 113, 113, 0.15)';
+          box.style.boxSizing = 'border-box';
+
+          // Badge
+          const badge = document.createElement('div');
+          badge.textContent = index + 1;
+          badge.style.position = 'absolute';
+          badge.style.top = '0';
+          badge.style.left = '0';
+          badge.style.transform = 'translate(-50%, -50%)';
+          badge.style.backgroundColor = '#f87171';
+          badge.style.color = '#fff';
+          badge.style.fontSize = '12px';
+          badge.style.width = '18px';
+          badge.style.height = '18px';
+          badge.style.display = 'flex';
+          badge.style.alignItems = 'center';
+          badge.style.justifyContent = 'center';
+          badge.style.borderRadius = '50%';
+          badge.style.boxShadow = '0 1px 4px rgba(0, 0, 0, 0.2)';
+
+          box.appendChild(badge);
+          overlay.appendChild(box);
+        });
+      }
+
+      const syncSelectedElements = () => {
+        updateSelectedHighlights();
 
         const selectedDetails = Array.from(state.selectedElements).map(elem => ({
           tag: elem.tagName,
@@ -81,25 +115,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           classes: Array.from(elem.classList).join(' ')
         }));
 
-        // Dispatch a custom DOM event with details instead of messaging directly
-        const customEvent = new CustomEvent('my-extension-selected-elements', {
-          detail: selectedDetails
-        });
-        window.dispatchEvent(customEvent);
-      };
-
-      const syncSelectedElements = () => {
-        const selectedEls = Array.from(document.querySelectorAll('.my-selected-outline'));
-        state.selectedElements.clear();
-        selectedEls.forEach(el => state.selectedElements.add(el));
-
-        const selectedDetails = selectedEls.map(elem => ({
-          tag: elem.tagName,
-          id: elem.id,
-          classes: Array.from(elem.classList).join(' ')
-        }));
-
-        // Dispatch event for sync
         const customEvent = new CustomEvent('my-extension-selected-elements', {
           detail: selectedDetails
         });
@@ -107,25 +122,60 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       };
 
       const toggleSelector = (enable) => {
+        if (state.handlersAttached) {
+          document.body.removeEventListener('mousemove', state.onMouseMove);
+          document.body.removeEventListener('click', state.onClick, true);
+          state.handlersAttached = false;
+        }
+
         state.active = enable;
 
         if (enable) {
-          if (!state.handlersAttached) {
-            document.body.addEventListener('mousemove', state.onMouseMove);
-            document.body.addEventListener('click', state.onClick, true);
-            state.handlersAttached = true;
-            console.log('Selector handlers attached.');
-          }
+          // Re-define handlers each time
+          state.onMouseMove = (event) => {
+            if (!state.active) return;
+            updateHoverBox(event.target);
+          };
+
+          state.onClick = (event) => {
+            if (!state.active) return;
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            const el = event.target;
+
+            if (state.selectedElements.has(el)) {
+              state.selectedElements.delete(el);
+            } else {
+              state.selectedElements.add(el);
+            }
+
+            updateSelectedHighlights();
+
+            const selectedDetails = Array.from(state.selectedElements).map(elem => ({
+              tag: elem.tagName,
+              id: elem.id,
+              classes: Array.from(elem.classList).join(' ')
+            }));
+
+            const customEvent = new CustomEvent('my-extension-selected-elements', {
+              detail: selectedDetails
+            });
+            window.dispatchEvent(customEvent);
+
+            updateHoverBox(event.target);
+          };
+
+          document.body.addEventListener('mousemove', state.onMouseMove);
+          document.body.addEventListener('click', state.onClick, true);
+          state.handlersAttached = true;
+
           syncSelectedElements();
           console.log('Selector mode enabled');
         } else {
-          document.querySelectorAll('.my-hover-outline').forEach(el => {
-            if (!state.selectedElements.has(el)) {
-              el.classList.remove('my-hover-outline');
-            }
-          });
-          state.lastHovered = null;
-          console.log('Selector mode disabled (handlers still attached)');
+          clearHoverBox();
+          console.log('Selector mode disabled');
         }
       };
 
@@ -148,18 +198,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       func: () => {
         if (!window.__selectorState__) return;
         const state = window.__selectorState__;
-        state.selectedElements.forEach(el =>
-          el.classList.remove('my-selected-outline')
-        );
         state.selectedElements.clear();
-        console.log('Selection cleared');
+
+        if (window.__highlightOverlay__) {
+          window.__highlightOverlay__.innerHTML = '';
+        }
       }
     });
     return true;
   }
 
   if (message.type === 'elementsSelected') {
-    // Forward the selection message to devtools panel
     chrome.runtime.sendMessage({
       type: 'elementsSelected',
       details: message.details

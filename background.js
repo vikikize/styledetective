@@ -2,9 +2,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'inject-selector-logic') {
     const { enabled, apiName, tabId } = message;
 
-    const injectedSelectorLogic = (enabled, apiName) => {
-      const injectedApi = window[apiName];
-
+    const injectedSelectorLogic = (enabled) => {
       const styleId = 'my-element-selector-styles';
       if (!document.getElementById(styleId)) {
         const style = document.createElement('style');
@@ -83,14 +81,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           classes: Array.from(elem.classList).join(' ')
         }));
 
-        try {
-          injectedApi.runtime.sendMessage({
-            type: 'elementsSelected',
-            details: selectedDetails
-          });
-        } catch (error) {
-          console.error("Could not send message:", error);
-        }
+        // Dispatch a custom DOM event with details instead of messaging directly
+        const customEvent = new CustomEvent('my-extension-selected-elements', {
+          detail: selectedDetails
+        });
+        window.dispatchEvent(customEvent);
       };
 
       const syncSelectedElements = () => {
@@ -104,14 +99,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           classes: Array.from(elem.classList).join(' ')
         }));
 
-        try {
-          injectedApi.runtime.sendMessage({
-            type: 'elementsSelected',
-            details: selectedDetails
-          });
-        } catch (error) {
-          console.error("Could not send message:", error);
-        }
+        // Dispatch event for sync
+        const customEvent = new CustomEvent('my-extension-selected-elements', {
+          detail: selectedDetails
+        });
+        window.dispatchEvent(customEvent);
       };
 
       const toggleSelector = (enable) => {
@@ -124,10 +116,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             state.handlersAttached = true;
             console.log('Selector handlers attached.');
           }
-          syncSelectedElements();  // Sync selection on enable
+          syncSelectedElements();
           console.log('Selector mode enabled');
         } else {
-          // Clear hover only (not selection)
           document.querySelectorAll('.my-hover-outline').forEach(el => {
             if (!state.selectedElements.has(el)) {
               el.classList.remove('my-hover-outline');
@@ -144,7 +135,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.scripting.executeScript({
       target: { tabId },
       func: injectedSelectorLogic,
-      args: [enabled, apiName]
+      args: [enabled]
     });
 
     sendResponse({ success: true });
@@ -165,5 +156,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
     });
     return true;
+  }
+
+  if (message.type === 'elementsSelected') {
+    // Forward the selection message to devtools panel
+    chrome.runtime.sendMessage({
+      type: 'elementsSelected',
+      details: message.details
+    });
   }
 });

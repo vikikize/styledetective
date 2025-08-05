@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Universal DevTools Panel - Firefox",
+  "name": "Universal DevTools Panel - Chrome",
   "version": "1.0",
-  "description": "DevTools panel compatible with Firefox",
+  "description": "DevTools panel compatible with Chrome",
   "permissions": [
     "tabs",
     "scripting"
@@ -14,6 +14,13 @@
     "scripts": ["background.js"],
     "persistent": false
   },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
   "devtools_page": "devtools.html",
   "action": {
     "default_title": "Selector Tool"

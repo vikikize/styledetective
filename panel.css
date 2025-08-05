@@ -42,15 +42,14 @@ button {
   background-color: #4b5563;
 }
 
-/* Info display container: clean and no decoration, responsive grid layout */
+/* Info display container: grid layout for cards */
 #infoDisplay {
   margin-top: 15px;
   padding: 0;
   font-size: 13px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 columns on wide */
-  gap: 20px; /* spacing between cards */
-  /* no border, background, shadow */
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
   display: none;
 }
 
@@ -77,8 +76,8 @@ button {
   gap: 8px;
   font-weight: 700;
   font-size: 16px;
-  color: #222; /* darker for contrast */
-  background-color: #e0e7ff; /* light indigo background */
+  color: #222;
+  background-color: #e0e7ff;
   padding: 8px 12px;
   border-radius: 4px;
   user-select: none;
@@ -87,7 +86,7 @@ button {
 /* Badge number styling */
 .badge-number {
   flex-shrink: 0;
-  background-color: #6366f1; /* indigo */
+  background-color: #6366f1;
   color: #fff;
   font-weight: 700;
   font-size: 13px;
@@ -103,7 +102,7 @@ button {
 /* Tag name styling */
 .tag-name {
   font-family: 'Courier New', Courier, monospace;
-  color: #3730a3; /* dark indigo */
+  color: #3730a3;
   flex-shrink: 1;
   min-width: 50px;
   white-space: nowrap;
@@ -149,31 +148,37 @@ button {
   word-break: break-word;
 }
 
-/* Properties grid - wrap and break lines nicely */
-.properties {
-  display: grid;
-  grid-template-columns: 130px 1fr;
-  row-gap: 4px;
-  column-gap: 10px;
-  font-size: 13px;
-  color: #4b5563;
-  user-select: text;
-  word-break: break-word;
+/* Properties table - for key-value pairs */
+.properties-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
 }
 
-/* Property name/value */
-.property-name {
+.properties-table td {
+  padding: 4px 8px;
+  vertical-align: top;
+  /* Remove cell borders */
+  border-bottom: none;
+}
+
+/* Property name cell */
+.property-name-cell {
   font-weight: 600;
+  color: #4b5563;
+  width: 130px;
+  white-space: nowrap;
   user-select: text;
-  word-break: break-word;
 }
 
-.property-value {
+/* Property value cell */
+.property-value-cell {
   font-family: 'Courier New', Courier, monospace;
-  white-space: normal; /* wrap text if too long */
-  overflow-wrap: break-word;
   color: #111827;
+  word-break: break-word;
+  white-space: normal;
   cursor: default;
+  user-select: text;
 }
 
 /* Card hover effect */
@@ -186,13 +191,13 @@ button {
 /* Responsive adjustments for medium and small widths */
 @media (max-width: 1024px) {
   #infoDisplay {
-    grid-template-columns: repeat(2, 1fr); /* 2 columns on medium */
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }
 
 @media (max-width: 600px) {
   #infoDisplay {
-    grid-template-columns: 1fr; /* 1 column on small */
+    grid-template-columns: 1fr !important;
   }
 
   .card-header {

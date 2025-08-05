@@ -32,21 +32,23 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
+  // Updated createSection to use a table for key-value pairs
   function createSection(title, data) {
     const rows = Object.entries(data)
-      .map(([key, value]) => {
-        return `
-          <div class="property-row">
-            <div class="property-name">${key}</div>
-            <div class="property-value" title="${value}">${value}</div>
-          </div>
-        `;
-      })
-      .join('');
+      .map(([key, value]) => `
+        <tr>
+          <td class="property-name">${key}</td>
+          <td class="property-value" title="${value}">${value}</td>
+        </tr>
+      `).join('');
     return `
       <div class="card-section">
         <h4>${title}</h4>
-        <div class="properties">${rows}</div>
+        <table class="properties-table">
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
       </div>
     `;
   }

@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
       selectorButton.classList.add('bg-red');
       infoDisplay.style.display = 'none';
       alignmentDisplay.style.display = 'none';
+      spacingDisplay.style.display = 'none';
     } else {
       selectorButton.textContent = 'Enable Selector Mode';
       selectorButton.classList.remove('bg-red');
@@ -437,6 +438,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     alignmentDisplay.style.display = 'none';
     infoDisplay.style.display = 'grid';
+    spacingDisplay.style.display = 'none';
+
 
     const expectedProfile = expectedStylesProfiles[selectedProfileName];
     const results = lastSelectedDetails.map(el => validateElementStyles(el.styles, expectedProfile));
@@ -448,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Please select at least 2 elements to validate alignment');
       return;
     }
-
+    spacingDisplay.style.display = 'none'; 
     renderAlignmentCardsWithSummary(lastSelectedDetails);
   });
 

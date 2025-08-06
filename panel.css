@@ -188,6 +188,33 @@ button {
   transition: background-color 0.2s ease, box-shadow 0.3s ease;
 }
 
+.match td {
+  background-color: #d1fae5; /* light green */
+  color: #065f46; /* dark green */
+}
+
+.mismatch td {
+  background-color: #fee2e2; /* light red */
+  color: #991b1b; /* dark red */
+}
+
+.not-asserted td {
+  background-color: #fef3c7; /* light yellow */
+  color: #92400e; /* dark yellow */
+}
+
+.property-value .actual-value {
+  color: red;
+  font-weight: 600;
+}
+
+.property-value .expected-value {
+  color: green;
+  font-style: italic;
+  margin-left: 8px;
+}
+
+
 /* Responsive adjustments for medium and small widths */
 @media (max-width: 1024px) {
   #infoDisplay {

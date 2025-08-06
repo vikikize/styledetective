@@ -5,8 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const selectorButton = document.getElementById('selectorButton');
   const clearButton = document.getElementById('clearButton');
   const validateButton = document.getElementById('validateButton');
+  const validateAlignmentButton = document.getElementById('validateAlignmentButton');
   const styleProfileDropdown = document.getElementById('styleProfileDropdown');
   const infoDisplay = document.getElementById('infoDisplay');
+  const alignmentDisplay = document.getElementById('alignmentDisplay');
 
   let selectorModeEnabled = false;
   let expectedStylesProfiles = {};
@@ -27,14 +29,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function normalizeCssValue(val) {
     if (typeof val !== 'string') return val;
     val = val.trim().toLowerCase();
-
     if (val.startsWith('rgb') || val.startsWith('#') || val.startsWith('hsl') || val === 'transparent') {
       return normalizeColor(val);
     }
-
     const num = parseFloat(val);
     if (!isNaN(num)) return num;
-
     return val;
   }
 
@@ -42,16 +41,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const results = {};
     for (const [expectedKey, expectedValRaw] of Object.entries(expectedProfile)) {
       const key = toCamelCase(expectedKey);
-
       const actualValRaw = elementStyles[key];
       if (actualValRaw === undefined || actualValRaw === null) {
-        results[expectedKey] = null; // unknown/missing
+        results[expectedKey] = null;
         continue;
       }
-
       const expectedVal = normalizeCssValue(expectedValRaw);
       const actualVal = normalizeCssValue(actualValRaw);
-
       results[expectedKey] = (expectedVal === actualVal);
     }
     return results;
@@ -63,57 +59,61 @@ document.addEventListener('DOMContentLoaded', () => {
       selectorButton.classList.remove('bg-indigo');
       selectorButton.classList.add('bg-red');
       infoDisplay.style.display = 'none';
+      alignmentDisplay.style.display = 'none';
     } else {
       selectorButton.textContent = 'Enable Selector Mode';
       selectorButton.classList.remove('bg-red');
       selectorButton.classList.add('bg-indigo');
+      // Hide both on disable
+      infoDisplay.style.display = 'none';
+      alignmentDisplay.style.display = 'none';
     }
   }
 
   function createSection(title, data, validationResults = {}, expectedStyles = {}) {
-    const rows = Object.entries(data)
-      .map(([key, value]) => {
-        let rowClass = '';
-        let expectedValue = expectedStyles[key];
-        let displayValue = value;
+    const rows = Object.entries(data).map(([key, value]) => {
+      let rowClass = '';
+      let expectedValue = expectedStyles[key];
+      let displayValue = value;
 
-        if (validationResults.hasOwnProperty(key)) {
-          if (validationResults[key] === true) {
-            rowClass = 'match';
-          } else if (validationResults[key] === false) {
-            rowClass = 'mismatch';
-            displayValue = `<span class="actual-value">${value}</span> <span class="expected-value">(Expected: ${expectedValue})</span>`;
-          } else {
-            rowClass = 'not-asserted';
-          }
+      if (validationResults.hasOwnProperty(key)) {
+        if (validationResults[key] === true) {
+          rowClass = 'match';
+        } else if (validationResults[key] === false) {
+          rowClass = 'mismatch';
+          displayValue = `<span class="actual-value">${value}</span> <span class="expected-value">(Expected: ${expectedValue})</span>`;
+        } else {
+          rowClass = 'not-asserted';
         }
+      }
 
-        return `
-          <tr class="${rowClass}">
-            <td class="property-name">${key}</td>
-            <td class="property-value" title="${value}">${displayValue}</td>
-          </tr>
-        `;
-      }).join('');
+      return `
+        <tr class="${rowClass}">
+          <td class="property-name">${key}</td>
+          <td class="property-value" title="${value}">${displayValue}</td>
+        </tr>
+      `;
+    }).join('');
 
     return `
       <div class="card-section">
         <h4>${title}</h4>
         <table class="properties-table">
-          <tbody>
-            ${rows}
-          </tbody>
+          <tbody>${rows}</tbody>
         </table>
       </div>
     `;
   }
 
   function renderCards(details, validationResultsPerElement = []) {
-    if (details.length === 0) {
+    if (!details.length) {
       infoDisplay.style.display = 'none';
       infoDisplay.innerHTML = '';
       return;
     }
+
+    infoDisplay.style.display = 'grid';
+    alignmentDisplay.style.display = 'none';
 
     const expectedProfile = expectedStylesProfiles[selectedProfileName];
 
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ${createSection('Layout', {
             display: s.display,
             position: s.position,
-            top: s.top,           // original CSS style value (string like '0px' or 'auto')
+            top: s.top,
             right: s.right,
             bottom: s.bottom,
             left: s.left,
@@ -151,13 +151,6 @@ document.addEventListener('DOMContentLoaded', () => {
             'min-height': s.minHeight,
             'box-sizing': s.boxSizing
           }, validationResults, expectedProfile)}
-
-          ${createSection('Absolute Position & Size', {
-            'absolute-x': s.absoluteX ? s.absoluteX.toFixed(2) + 'px' : 'N/A',
-            'absolute-y': s.absoluteY ? s.absoluteY.toFixed(2) + 'px' : 'N/A',
-            'absolute-width': s.absoluteWidth ? s.absoluteWidth.toFixed(2) + 'px' : 'N/A',
-            'absolute-height': s.absoluteHeight ? s.absoluteHeight.toFixed(2) + 'px' : 'N/A'
-          })}
 
           ${createSection('Margin', {
             'margin-top': s.marginTop,
@@ -171,25 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
             'padding-right': s.paddingRight,
             'padding-bottom': s.paddingBottom,
             'padding-left': s.paddingLeft
-          }, validationResults, expectedProfile)}
-
-          ${createSection('Border', {
-            'border-top': s.borderTop,
-            'border-top-width': s.borderTopWidth,
-            'border-top-style': s.borderTopStyle,
-            'border-top-color': s.borderTopColor,
-            'border-right': s.borderRight,
-            'border-right-width': s.borderRightWidth,
-            'border-right-style': s.borderRightStyle,
-            'border-right-color': s.borderRightColor,
-            'border-bottom': s.borderBottom,
-            'border-bottom-width': s.borderBottomWidth,
-            'border-bottom-style': s.borderBottomStyle,
-            'border-bottom-color': s.borderBottomColor,
-            'border-left': s.borderLeft,
-            'border-left-width': s.borderLeftWidth,
-            'border-left-style': s.borderLeftStyle,
-            'border-left-color': s.borderLeftColor
           }, validationResults, expectedProfile)}
 
           ${createSection('Border Radius', {
@@ -234,15 +208,108 @@ document.addEventListener('DOMContentLoaded', () => {
     }).join('');
 
     infoDisplay.innerHTML = cardsHTML;
-    infoDisplay.style.display = 'block';
   }
 
-  async function loadExpectedStyles() {
-    try {
-      const response = await fetch(chrome.runtime.getURL('expectedStyles.json'));
-      expectedStylesProfiles = await response.json();
+  function pixelDiff(a, b) {
+    return Math.abs(a - b) <= 0.5 ? 0 : parseFloat((a - b).toFixed(2));
+  }
 
-      if (styleProfileDropdown) {
+  function validateAlignment(details) {
+    const result = {
+      top: [],
+      bottom: [],
+      left: [],
+      right: [],
+      verticalCenter: [],
+      horizontalCenter: [],
+    };
+    if (details.length < 2) return result;
+
+    const rects = details.map(el => {
+      const s = el.styles;
+      return {
+        tag: el.tag,
+        id: el.id,
+        classes: el.classes,
+        top: s.absoluteY,
+        left: s.absoluteX,
+        width: s.absoluteWidth,
+        height: s.absoluteHeight,
+        bottom: s.absoluteY + s.absoluteHeight,
+        right: s.absoluteX + s.absoluteWidth,
+        verticalCenter: s.absoluteY + s.absoluteHeight / 2,
+        horizontalCenter: s.absoluteX + s.absoluteWidth / 2,
+      };
+    });
+
+    const base = rects[0];
+
+    for (let i = 1; i < rects.length; i++) {
+      const el = rects[i];
+      result.top.push({ ...el, diff: pixelDiff(el.top, base.top), baseRef: `Element 1 (tag: &lt;${base.tag.toLowerCase()}&gt;)` });
+      result.bottom.push({ ...el, diff: pixelDiff(el.bottom, base.bottom), baseRef: `Element 1 (tag: &lt;${base.tag.toLowerCase()}&gt;)` });
+      result.left.push({ ...el, diff: pixelDiff(el.left, base.left), baseRef: `Element 1 (tag: &lt;${base.tag.toLowerCase()}&gt;)` });
+      result.right.push({ ...el, diff: pixelDiff(el.right, base.right), baseRef: `Element 1 (tag: &lt;${base.tag.toLowerCase()}&gt;)` });
+      result.verticalCenter.push({ ...el, diff: pixelDiff(el.verticalCenter, base.verticalCenter), baseRef: `Element 1 (tag: &lt;${base.tag.toLowerCase()}&gt;)` });
+      result.horizontalCenter.push({ ...el, diff: pixelDiff(el.horizontalCenter, base.horizontalCenter), baseRef: `Element 1 (tag: &lt;${base.tag.toLowerCase()}&gt;)` });
+    }
+
+    return result;
+  }
+
+  function renderAlignmentCards(alignmentResult) {
+    alignmentDisplay.innerHTML = '';
+    infoDisplay.style.display = 'none';
+    alignmentDisplay.style.display = 'grid';
+
+    Object.entries(alignmentResult).forEach(([key, items]) => {
+      const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+
+      // We need base element info from first selected detail
+      const base = lastSelectedDetails[0];
+      const baseTag = base ? base.tag.toLowerCase() : '(unknown)';
+      const baseId = base && base.id ? `#${base.id}` : '';
+
+      // First row: base element as reference
+      const baseRow = `
+        <tr>
+          <td class="property-name-cell">Element #1 - &lt;${baseTag}&gt; ${baseId}</td>
+          <td class="property-value-cell">reference</td>
+        </tr>
+      `;
+
+      // Other rows for each other element
+      const tableRows = items.map((el, idx) => `
+        <tr>
+          <td class="property-name-cell">Element #${idx + 2} - &lt;${el.tag.toLowerCase()}&gt; ${el.id ? `#${el.id}` : ''}</td>
+          <td class="property-value-cell">${el.diff === 0 ? '✓ Aligned' : `${el.diff}px off`}</td>
+        </tr>
+      `).join('');
+
+      const card = `
+        <div class="element-card">
+          <div class="card-header">${label} Alignment</div>
+          <div class="card-section">
+            <table class="properties-table">
+              <tbody>
+                ${baseRow}
+                ${tableRows}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+
+      alignmentDisplay.innerHTML += card;
+    });
+  }
+
+
+  function loadExpectedStyles() {
+    return fetch(chrome.runtime.getURL('expectedStyles.json'))
+      .then(res => res.json())
+      .then(data => {
+        expectedStylesProfiles = data;
         styleProfileDropdown.innerHTML = '';
         Object.keys(expectedStylesProfiles).forEach(profileName => {
           const option = document.createElement('option');
@@ -251,34 +318,12 @@ document.addEventListener('DOMContentLoaded', () => {
           styleProfileDropdown.appendChild(option);
         });
         selectedProfileName = styleProfileDropdown.value || Object.keys(expectedStylesProfiles)[0];
-      }
-    } catch (err) {
-      console.error('Failed to load expectedStyles.json:', err);
-    }
-  }
-
-  function validateSelection() {
-    if (!lastSelectedDetails.length) {
-      alert('No elements selected to validate');
-      return;
-    }
-    if (!selectedProfileName || !expectedStylesProfiles[selectedProfileName]) {
-      alert('Please select a valid style profile');
-      return;
-    }
-    const expectedProfile = expectedStylesProfiles[selectedProfileName];
-
-    const validationResultsPerElement = lastSelectedDetails.map(elem => {
-      return validateElementStyles(elem.styles, expectedProfile);
-    });
-
-    renderCards(lastSelectedDetails, validationResultsPerElement);
+      });
   }
 
   selectorButton.addEventListener('click', () => {
     selectorModeEnabled = !selectorModeEnabled;
     updateSelectorButton();
-
     runtime.sendMessage({
       type: 'inject-selector-logic',
       enabled: selectorModeEnabled,
@@ -294,25 +339,44 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     lastSelectedDetails = [];
     infoDisplay.innerHTML = '';
+    alignmentDisplay.innerHTML = '';
     infoDisplay.style.display = 'none';
+    alignmentDisplay.style.display = 'none';
   });
 
   validateButton.addEventListener('click', () => {
-    validateSelection();
+    if (!lastSelectedDetails.length) {
+      alert('No elements selected to validate');
+      return;
+    }
+    if (!selectedProfileName || !expectedStylesProfiles[selectedProfileName]) {
+      alert('Please select a valid style profile');
+      return;
+    }
+    const expectedProfile = expectedStylesProfiles[selectedProfileName];
+    const results = lastSelectedDetails.map(el => validateElementStyles(el.styles, expectedProfile));
+    renderCards(lastSelectedDetails, results);
   });
 
-  runtime.onMessage.addListener((message) => {
+  validateAlignmentButton.addEventListener('click', () => {
+    if (lastSelectedDetails.length < 2) {
+      alert('Please select at least 2 elements to validate alignment');
+      return;
+    }
+    const results = validateAlignment(lastSelectedDetails);
+    renderAlignmentCards(results);
+  });
+
+  styleProfileDropdown.addEventListener('change', e => {
+    selectedProfileName = e.target.value;
+  });
+
+  runtime.onMessage.addListener(message => {
     if (message.type === 'elementsSelected') {
       lastSelectedDetails = message.details;
-      renderCards(lastSelectedDetails); // render WITHOUT validation until Validate button clicked
+      renderCards(lastSelectedDetails); // by default, show style cards on new selection
     }
   });
-
-  if (styleProfileDropdown) {
-    styleProfileDropdown.addEventListener('change', (e) => {
-      selectedProfileName = e.target.value;
-    });
-  }
 
   updateSelectorButton();
   loadExpectedStyles();

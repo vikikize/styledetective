@@ -225,6 +225,16 @@ button {
   margin-left: 8px;
 }
 
+/* Container for alignment cards (below summary table) */
+.alignment-cards-container {
+  display: grid;
+  gap: 1rem;
+  /* Responsive columns: min 280px per card, auto-fit */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  margin-top: 1rem;
+}
+
+
 /* Responsive adjustments for medium and small widths */
 @media (max-width: 1024px) {
   #infoDisplay {

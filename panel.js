@@ -272,7 +272,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el.diff === 0) {
           rightCell = '✓ Aligned';
         } else {
-          // Show signed px offset, positive or negative
           rightCell = `${el.diff > 0 ? '+' : ''}${el.diff}px off`;
         }
 
@@ -284,9 +283,6 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       }).join('');
 
-      // Add first row as the reference element #1
-      const base = alignmentResult[key][0] || null; // base element not included in array, so get from details[0]
-      // Actually base element is not in the array, so we get details[0] from lastSelectedDetails for correct info
       const baseElement = lastSelectedDetails[0];
       const baseTag = baseElement?.tag.toLowerCase() || 'unknown';
       const baseId = baseElement?.id ? ` #${baseElement.id}` : '';
@@ -317,6 +313,135 @@ document.addEventListener('DOMContentLoaded', () => {
       alignmentDisplay.innerHTML += card;
     });
   }
+
+  function renderAlignmentSummaryTable(details) {
+    if (details.length === 0) {
+      return '';
+    }
+
+    const rows = details.map((el, idx) => {
+      const s = el.styles;
+      const tag = el.tag.toLowerCase();
+      const idText = el.id ? `#${el.id}` : '';
+      const number = idx + 1;
+
+      return `
+        <tr>
+          <td>Element #${number}</td>
+          <td>&lt;${tag}&gt; ${idText}</td>
+          <td>${s.absoluteX}px</td>
+          <td>${s.absoluteY}px</td>
+          <td>${s.absoluteWidth}px</td>
+          <td>${s.absoluteHeight}px</td>
+          <td>${s.absoluteX + s.absoluteWidth}px</td>
+          <td>${s.absoluteY + s.absoluteHeight}px</td>
+          <td>${(s.absoluteX + s.absoluteWidth / 2).toFixed(2)}px</td>
+          <td>${(s.absoluteY + s.absoluteHeight / 2).toFixed(2)}px</td>
+        </tr>
+      `;
+    }).join('');
+
+    return `
+      <div class="element-card">
+        <div class="card-header">Absolute Bounding Values Summary</div>
+        <div class="card-section" style="overflow-x:auto;">
+          <table class="properties-table" style="min-width: 700px;">
+            <thead>
+              <tr>
+                <th>Element</th>
+                <th>Tag & ID</th>
+                <th>Left (X)</th>
+                <th>Top (Y)</th>
+                <th>Width</th>
+                <th>Height</th>
+                <th>Right</th>
+                <th>Bottom</th>
+                <th>Center X</th>
+                <th>Center Y</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderAlignmentCardsWithSummary(details) {
+    const alignmentResult = validateAlignment(details);
+    alignmentDisplay.innerHTML = '';
+
+    // Render summary table first (full width)
+    const summaryTable = renderAlignmentSummaryTable(details);
+    alignmentDisplay.innerHTML += summaryTable;
+
+    // Create a container div for cards with grid layout
+    const cardsContainer = document.createElement('div');
+    cardsContainer.className = 'alignment-cards-container';
+
+    Object.entries(alignmentResult).forEach(([key, items]) => {
+      const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+
+      const tableRows = items.map((el, idx) => {
+        const elementNumber = idx + 2; // first element is base #1
+        const tag = el.tag.toLowerCase();
+        const idText = el.id ? ` #${el.id}` : '';
+        const leftCell = `Element #${elementNumber} - &lt;${tag}&gt;${idText}`;
+        let rightCell = '';
+
+        if (el.diff === 0) {
+          rightCell = '✓ Aligned';
+        } else {
+          rightCell = `${el.diff > 0 ? '+' : ''}${el.diff}px off`;
+        }
+
+        return `
+          <tr>
+            <td class="property-name-cell">${leftCell}</td>
+            <td class="property-value-cell">${rightCell}</td>
+          </tr>
+        `;
+      }).join('');
+
+      const baseElement = lastSelectedDetails[0];
+      const baseTag = baseElement?.tag.toLowerCase() || 'unknown';
+      const baseId = baseElement?.id ? ` #${baseElement.id}` : '';
+      const baseLeftCell = `Element #1 - &lt;${baseTag}&gt;${baseId} (reference)`;
+      const baseRightCell = 'reference';
+
+      const tableHeader = `
+        <tr>
+          <td class="property-name-cell"><strong>${baseLeftCell}</strong></td>
+          <td class="property-value-cell"><strong>${baseRightCell}</strong></td>
+        </tr>
+      `;
+
+      const cardHTML = `
+        <div class="element-card">
+          <div class="card-header">${label} Alignment</div>
+          <div class="card-section">
+            <table class="properties-table">
+              <tbody>
+                ${tableHeader}
+                ${tableRows}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+
+      // Append card to container
+      cardsContainer.innerHTML += cardHTML;
+    });
+
+    alignmentDisplay.appendChild(cardsContainer);
+
+    infoDisplay.style.display = 'none';
+    alignmentDisplay.style.display = 'block';
+  }
+
 
   function loadExpectedStyles() {
     return fetch(chrome.runtime.getURL('expectedStyles.json'))
@@ -367,7 +492,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Show info cards, hide alignment cards
     alignmentDisplay.style.display = 'none';
     infoDisplay.style.display = 'grid';
 
@@ -382,12 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Show alignment cards, hide info cards
-    infoDisplay.style.display = 'none';
-    alignmentDisplay.style.display = 'grid';
-
-    const results = validateAlignment(lastSelectedDetails);
-    renderAlignmentCards(results);
+    renderAlignmentCardsWithSummary(lastSelectedDetails);
   });
 
   styleProfileDropdown.addEventListener('change', e => {
@@ -397,7 +516,6 @@ document.addEventListener('DOMContentLoaded', () => {
   runtime.onMessage.addListener(message => {
     if (message.type === 'elementsSelected') {
       lastSelectedDetails = message.details;
-      // By default, show style info cards and hide alignment cards on new selection
       infoDisplay.style.display = 'grid';
       alignmentDisplay.style.display = 'none';
       renderCards(lastSelectedDetails);

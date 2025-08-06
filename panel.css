@@ -47,10 +47,21 @@ button {
   margin-top: 15px;
   padding: 0;
   font-size: 13px;
-  display: grid !important;
+  display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   display: none;
+}
+
+/* Alignment display container: same grid layout as infoDisplay */
+#alignmentDisplay {
+  margin-top: 15px;
+  padding: 0;
+  font-size: 13px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  display: none; /* initially hidden */
 }
 
 /* Cards styling */
@@ -214,16 +225,21 @@ button {
   margin-left: 8px;
 }
 
-
 /* Responsive adjustments for medium and small widths */
 @media (max-width: 1024px) {
   #infoDisplay {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  #alignmentDisplay {
     grid-template-columns: repeat(2, 1fr) !important;
   }
 }
 
 @media (max-width: 600px) {
   #infoDisplay {
+    grid-template-columns: 1fr !important;
+  }
+  #alignmentDisplay {
     grid-template-columns: 1fr !important;
   }
 

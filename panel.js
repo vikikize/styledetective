@@ -64,9 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
       selectorButton.textContent = 'Enable Selector Mode';
       selectorButton.classList.remove('bg-red');
       selectorButton.classList.add('bg-indigo');
-      // Hide both on disable
-      infoDisplay.style.display = 'none';
-      alignmentDisplay.style.display = 'none';
     }
   }
 
@@ -237,8 +234,8 @@ document.addEventListener('DOMContentLoaded', () => {
         height: s.absoluteHeight,
         bottom: s.absoluteY + s.absoluteHeight,
         right: s.absoluteX + s.absoluteWidth,
-        verticalCenter: s.absoluteY + s.absoluteHeight / 2,
-        horizontalCenter: s.absoluteX + s.absoluteWidth / 2,
+        verticalCenter: s.absoluteX + s.absoluteWidth / 2,
+        horizontalCenter: s.absoluteY + s.absoluteHeight / 2,
       };
     });
 
@@ -246,12 +243,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     for (let i = 1; i < rects.length; i++) {
       const el = rects[i];
-      result.top.push({ ...el, diff: pixelDiff(el.top, base.top), baseRef: `Element 1 (tag: &lt;${base.tag.toLowerCase()}&gt;)` });
-      result.bottom.push({ ...el, diff: pixelDiff(el.bottom, base.bottom), baseRef: `Element 1 (tag: &lt;${base.tag.toLowerCase()}&gt;)` });
-      result.left.push({ ...el, diff: pixelDiff(el.left, base.left), baseRef: `Element 1 (tag: &lt;${base.tag.toLowerCase()}&gt;)` });
-      result.right.push({ ...el, diff: pixelDiff(el.right, base.right), baseRef: `Element 1 (tag: &lt;${base.tag.toLowerCase()}&gt;)` });
-      result.verticalCenter.push({ ...el, diff: pixelDiff(el.verticalCenter, base.verticalCenter), baseRef: `Element 1 (tag: &lt;${base.tag.toLowerCase()}&gt;)` });
-      result.horizontalCenter.push({ ...el, diff: pixelDiff(el.horizontalCenter, base.horizontalCenter), baseRef: `Element 1 (tag: &lt;${base.tag.toLowerCase()}&gt;)` });
+      result.top.push({ ...el, diff: pixelDiff(el.top, base.top) });
+      result.bottom.push({ ...el, diff: pixelDiff(el.bottom, base.bottom) });
+      result.left.push({ ...el, diff: pixelDiff(el.left, base.left) });
+      result.right.push({ ...el, diff: pixelDiff(el.right, base.right) });
+      result.verticalCenter.push({ ...el, diff: pixelDiff(el.verticalCenter, base.verticalCenter) });
+      result.horizontalCenter.push({ ...el, diff: pixelDiff(el.horizontalCenter, base.horizontalCenter) });
     }
 
     return result;
@@ -265,26 +262,43 @@ document.addEventListener('DOMContentLoaded', () => {
     Object.entries(alignmentResult).forEach(([key, items]) => {
       const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
 
-      // We need base element info from first selected detail
-      const base = lastSelectedDetails[0];
-      const baseTag = base ? base.tag.toLowerCase() : '(unknown)';
-      const baseId = base && base.id ? `#${base.id}` : '';
+      const tableRows = items.map((el, idx) => {
+        const elementNumber = idx + 2; // since first is base element #1
+        const tag = el.tag.toLowerCase();
+        const idText = el.id ? ` #${el.id}` : '';
+        const leftCell = `Element #${elementNumber} - &lt;${tag}&gt;${idText}`;
+        let rightCell = '';
 
-      // First row: base element as reference
-      const baseRow = `
+        if (el.diff === 0) {
+          rightCell = '✓ Aligned';
+        } else {
+          // Show signed px offset, positive or negative
+          rightCell = `${el.diff > 0 ? '+' : ''}${el.diff}px off`;
+        }
+
+        return `
+          <tr>
+            <td class="property-name-cell">${leftCell}</td>
+            <td class="property-value-cell">${rightCell}</td>
+          </tr>
+        `;
+      }).join('');
+
+      // Add first row as the reference element #1
+      const base = alignmentResult[key][0] || null; // base element not included in array, so get from details[0]
+      // Actually base element is not in the array, so we get details[0] from lastSelectedDetails for correct info
+      const baseElement = lastSelectedDetails[0];
+      const baseTag = baseElement?.tag.toLowerCase() || 'unknown';
+      const baseId = baseElement?.id ? ` #${baseElement.id}` : '';
+      const baseLeftCell = `Element #1 - &lt;${baseTag}&gt;${baseId} (reference)`;
+      const baseRightCell = 'reference';
+
+      const tableHeader = `
         <tr>
-          <td class="property-name-cell">Element #1 - &lt;${baseTag}&gt; ${baseId}</td>
-          <td class="property-value-cell">reference</td>
+          <td class="property-name-cell"><strong>${baseLeftCell}</strong></td>
+          <td class="property-value-cell"><strong>${baseRightCell}</strong></td>
         </tr>
       `;
-
-      // Other rows for each other element
-      const tableRows = items.map((el, idx) => `
-        <tr>
-          <td class="property-name-cell">Element #${idx + 2} - &lt;${el.tag.toLowerCase()}&gt; ${el.id ? `#${el.id}` : ''}</td>
-          <td class="property-value-cell">${el.diff === 0 ? '✓ Aligned' : `${el.diff}px off`}</td>
-        </tr>
-      `).join('');
 
       const card = `
         <div class="element-card">
@@ -292,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="card-section">
             <table class="properties-table">
               <tbody>
-                ${baseRow}
+                ${tableHeader}
                 ${tableRows}
               </tbody>
             </table>
@@ -303,7 +317,6 @@ document.addEventListener('DOMContentLoaded', () => {
       alignmentDisplay.innerHTML += card;
     });
   }
-
 
   function loadExpectedStyles() {
     return fetch(chrome.runtime.getURL('expectedStyles.json'))
@@ -353,6 +366,11 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Please select a valid style profile');
       return;
     }
+
+    // Show info cards, hide alignment cards
+    alignmentDisplay.style.display = 'none';
+    infoDisplay.style.display = 'grid';
+
     const expectedProfile = expectedStylesProfiles[selectedProfileName];
     const results = lastSelectedDetails.map(el => validateElementStyles(el.styles, expectedProfile));
     renderCards(lastSelectedDetails, results);
@@ -363,6 +381,11 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Please select at least 2 elements to validate alignment');
       return;
     }
+
+    // Show alignment cards, hide info cards
+    infoDisplay.style.display = 'none';
+    alignmentDisplay.style.display = 'grid';
+
     const results = validateAlignment(lastSelectedDetails);
     renderAlignmentCards(results);
   });
@@ -374,7 +397,10 @@ document.addEventListener('DOMContentLoaded', () => {
   runtime.onMessage.addListener(message => {
     if (message.type === 'elementsSelected') {
       lastSelectedDetails = message.details;
-      renderCards(lastSelectedDetails); // by default, show style cards on new selection
+      // By default, show style info cards and hide alignment cards on new selection
+      infoDisplay.style.display = 'grid';
+      alignmentDisplay.style.display = 'none';
+      renderCards(lastSelectedDetails);
     }
   });
 

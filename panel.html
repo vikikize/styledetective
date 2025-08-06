@@ -2,23 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Selector Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DevTools Style & Alignment Validator</title>
   <link rel="stylesheet" href="panel.css" />
 </head>
 <body>
-  <button id="selectorButton" class="bg-indigo">Enable Selector Mode</button>
-  <button id="clearButton">Clear Selection</button>
+  <div class="toolbar">
+    <button id="selectorButton" class="btn bg-indigo">Enable Selector Mode</button>
+    <button id="clearButton" class="btn">Clear Selection</button>
+    <select id="styleProfileDropdown" class="dropdown"></select>
+    <button id="validateButton" class="btn bg-green">Validate Styles</button>
+    <button id="validateAlignmentButton" class="btn bg-blue">Validate Alignment</button>
+  </div>
 
-  <select id="styleProfileDropdown" style="margin-left:10px; padding:4px 8px;">
-    <option value="" disabled selected>Select style profile</option>
-  </select>
-
-  <button id="validateButton" style="margin-left:10px; padding:8px 14px;">Validate Styles</button>
-  <button id="validateAlignmentButton" style="margin-left:10px; padding:8px 14px;">Validate Alignment</button>
-
-  <div id="infoDisplay"></div>
-  <div id="alignmentDisplay" style="display: none;"></div>
-
+  <div id="infoDisplay" class="cards-container" style="display:none;"></div>
+  <div id="alignmentDisplay" class="cards-container" style="display:none;"></div>
+  
   <script src="panel.js"></script>
 </body>
 </html>

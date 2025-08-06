@@ -252,6 +252,31 @@ button {
   font-weight: 600;
 }
 
+.nested-spacing-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.nested-spacing-table td {
+  padding: 6px 10px;
+  vertical-align: top;
+  font-family: 'Courier New', Courier, monospace;
+  color: #111827;
+  background-color: #ffffff;
+}
+
+.nested-spacing-table .spacing-label {
+  font-weight: 600;
+  color: #374151;
+  width: 60%;
+}
+
+.nested-spacing-table .spacing-value {
+  text-align: right;
+  width: 40%;
+}
+
 
 
 /* Responsive adjustments for medium and small widths */
@@ -283,3 +308,36 @@ button {
     font-size: 12px;
   }
 }
+
+#spacingDisplay{
+  margin-top: 16px;
+}
+
+
+/* Consistent spacing table style */
+.spacing-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.spacing-summary-table th,
+.spacing-summary-table td {
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.spacing-summary-table th {
+  background-color: #f9fafb;
+  color: #111827;
+  font-weight: 600;
+}
+
+.spacing-summary-table td code {
+  font-family: 'Courier New', Courier, monospace;
+  background: #f3f4f6;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+

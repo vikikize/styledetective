@@ -411,16 +411,19 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   clearButton.addEventListener('click', () => {
-    runtime.sendMessage({
-      type: 'clear-selection',
-      tabId: devtools.inspectedWindow.tabId
-    });
-    lastSelectedDetails = [];
-    infoDisplay.innerHTML = '';
-    alignmentDisplay.innerHTML = '';
-    infoDisplay.style.display = 'none';
-    alignmentDisplay.style.display = 'none';
+  runtime.sendMessage({
+    type: 'clear-selection',
+    tabId: devtools.inspectedWindow.tabId
   });
+  lastSelectedDetails = [];
+  infoDisplay.innerHTML = '';
+  alignmentDisplay.innerHTML = '';
+  spacingDisplay.innerHTML = '';
+  infoDisplay.style.display = 'none';
+  alignmentDisplay.style.display = 'none';
+  spacingDisplay.style.display = 'none';
+});
+
 
   validateButton.addEventListener('click', () => {
     if (!lastSelectedDetails.length) {
@@ -461,6 +464,254 @@ document.addEventListener('DOMContentLoaded', () => {
       renderCards(lastSelectedDetails);
     }
   });
+
+  // Add references to the new button and spacing container in your HTML
+const calculateSpacingButton = document.getElementById('calculateSpacingButton');
+const spacingDisplay = document.getElementById('spacingDisplay');
+
+// Spacing calculation helper functions (copy from previous message, or define here)
+function getRect(el) {
+  const s = el.styles;
+  return {
+    left: s.absoluteX,
+    right: s.absoluteX + s.absoluteWidth,
+    top: s.absoluteY,
+    bottom: s.absoluteY + s.absoluteHeight,
+    width: s.absoluteWidth,
+    height: s.absoluteHeight,
+    tag: el.tag,
+    id: el.id,
+  };
+}
+
+function isFullOverlap(rect1, rect2) {
+  const horizontal = (rect1.left <= rect2.left && rect1.right >= rect2.right) ||
+                     (rect2.left <= rect1.left && rect2.right >= rect1.right);
+  const vertical = (rect1.top <= rect2.top && rect1.bottom >= rect2.bottom) ||
+                   (rect2.top <= rect1.top && rect2.bottom >= rect1.bottom);
+  return horizontal && vertical;
+}
+
+function isHorizontalOverlap(rect1, rect2) {
+  return !(rect1.right <= rect2.left || rect2.right <= rect1.left);
+}
+
+function isVerticalOverlap(rect1, rect2) {
+  return !(rect1.bottom <= rect2.top || rect2.bottom <= rect1.top);
+}
+
+function calculateFullOverlapDistances(rect1, rect2) {
+  return {
+    leftToLeft: Math.abs(rect1.left - rect2.left),
+    rightToRight: Math.abs(rect1.right - rect2.right),
+    topToTop: Math.abs(rect1.top - rect2.top),
+    bottomToBottom: Math.abs(rect1.bottom - rect2.bottom),
+  };
+}
+
+function calculateHorizontalSpacing(rect1, rect2) {
+  if (rect1.right <= rect2.left) {
+    return rect2.left - rect1.right;
+  } else if (rect2.right <= rect1.left) {
+    return rect1.left - rect2.right;
+  }
+  return 0;
+}
+
+function calculateVerticalSpacing(rect1, rect2) {
+  if (rect1.bottom <= rect2.top) {
+    return rect2.top - rect1.bottom;
+  } else if (rect2.bottom <= rect1.top) {
+    return rect1.top - rect2.bottom;
+  }
+  return 0;
+}
+
+function calculatePairSpacing(el1, el2) {
+  const rect1 = getRect(el1);
+  const rect2 = getRect(el2);
+
+  if (isFullOverlap(rect1, rect2)) {
+    return {
+      relation: 'Full Overlap',
+      ...calculateFullOverlapDistances(rect1, rect2),
+      horizontalSpacing: 0,
+      verticalSpacing: 0,
+      note: 'One element fully contains the other',
+    };
+  }
+
+  const horizontalOverlap = isHorizontalOverlap(rect1, rect2);
+  const verticalOverlap = isVerticalOverlap(rect1, rect2);
+
+  if (!horizontalOverlap && !verticalOverlap) {
+    return {
+      relation: 'No Overlap',
+      horizontalSpacing: calculateHorizontalSpacing(rect1, rect2),
+      verticalSpacing: calculateVerticalSpacing(rect1, rect2),
+      note: 'Elements separated horizontally and vertically',
+    };
+  }
+
+  if (horizontalOverlap && !verticalOverlap) {
+    return {
+      relation: 'Partial Vertical Overlap',
+      horizontalSpacing: 0,
+      verticalSpacing: calculateVerticalSpacing(rect1, rect2),
+      note: 'Elements overlap horizontally but separated vertically',
+    };
+  }
+
+  if (!horizontalOverlap && verticalOverlap) {
+    return {
+      relation: 'Partial Horizontal Overlap',
+      horizontalSpacing: calculateHorizontalSpacing(rect1, rect2),
+      verticalSpacing: 0,
+      note: 'Elements overlap vertically but separated horizontally',
+    };
+  }
+
+  return {
+    relation: 'Partial Horizontal + Vertical Overlap',
+    horizontalSpacing: 0,
+    verticalSpacing: 0,
+    note: 'Elements overlap both horizontally and vertically partially',
+  };
+}
+
+// Helper to render nested spacing details table inside main spacing cell
+function renderSpacingDetailsTable(spacing) {
+  // spacing is an object that can have keys like:
+  // horizontalSpacing, verticalSpacing, leftToLeft, rightToRight, topToTop, bottomToBottom
+  const rows = [];
+
+  if ('leftToLeft' in spacing) {
+    rows.push(`<tr><td class="spacing-label">Left to Left</td><td class="spacing-value">${spacing.leftToLeft}px</td></tr>`);
+  }
+  if ('rightToRight' in spacing) {
+    rows.push(`<tr><td class="spacing-label">Right to Right</td><td class="spacing-value">${spacing.rightToRight}px</td></tr>`);
+  }
+  if ('topToTop' in spacing) {
+    rows.push(`<tr><td class="spacing-label">Top to Top</td><td class="spacing-value">${spacing.topToTop}px</td></tr>`);
+  }
+  if ('bottomToBottom' in spacing) {
+    rows.push(`<tr><td class="spacing-label">Bottom to Bottom</td><td class="spacing-value">${spacing.bottomToBottom}px</td></tr>`);
+  }
+  if ('horizontalSpacing' in spacing) {
+    rows.push(`<tr><td class="spacing-label">Horizontal Spacing</td><td class="spacing-value">${spacing.horizontalSpacing}px</td></tr>`);
+  }
+  if ('verticalSpacing' in spacing) {
+    rows.push(`<tr><td class="spacing-label">Vertical Spacing</td><td class="spacing-value">${spacing.verticalSpacing}px</td></tr>`);
+  }
+
+  return `
+    <table class="nested-spacing-table">
+      <tbody>
+        ${rows.join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function formatElementLabel(index, el) {
+  const tag = el.tag?.toLowerCase() || 'unknown';
+  const idPart = el.id ? ` #${el.id}` : '';
+  const classPart = el.classes ? ` .${el.classes.trim().split(/\s+/).join('.')}` : '';
+  return `Element #${index} - &lt;${tag}&gt;${idPart}${classPart}`;
+}
+
+
+function renderPairSpacingTable(details) {
+  if (details.length < 2) {
+    return '<p>Select at least 2 elements to calculate spacing.</p>';
+  }
+
+  const rows = [];
+  const pairCount = Math.floor(details.length / 2);
+
+  for (let i = 0; i < pairCount; i++) {
+    const el1 = details[i * 2];
+    const el2 = details[i * 2 + 1];
+
+    const spacing = calculatePairSpacing(el1, el2);
+
+    const el1Text = formatElementLabel(i * 2 + 1, el1);
+    const el2Text = formatElementLabel(i * 2 + 2, el2);
+
+    let spacingDetailsHTML = '';
+
+    if (spacing.relation === 'Full Overlap') {
+      spacingDetailsHTML = renderSpacingDetailsTable({
+        leftToLeft: spacing.leftToLeft,
+        rightToRight: spacing.rightToRight,
+        topToTop: spacing.topToTop,
+        bottomToBottom: spacing.bottomToBottom,
+      });
+    } else {
+      spacingDetailsHTML = renderSpacingDetailsTable({
+        horizontalSpacing: spacing.horizontalSpacing,
+        verticalSpacing: spacing.verticalSpacing,
+      });
+    }
+
+    rows.push(`
+      <tr>
+        <td>${i + 1}</td>
+        <td>${el1Text}</td>
+        <td>${el2Text}</td>
+        <td>${spacing.relation}</td>
+        <td>${spacingDetailsHTML}</td>
+        <td>${spacing.note || ''}</td>
+      </tr>
+    `);
+  }
+
+  const oddNote = details.length % 2 === 1
+    ? `<p><em>Note: Element #${details.length} skipped due to odd number of elements.</em></p>`
+    : '';
+
+  return `
+  <div class="element-card">
+    <div class="card-header">Spacing Between Element Pairs</div>
+    <div class="card-section" style="overflow-x: auto;">
+      ${oddNote}
+      <table class="spacing-summary-table properties-table" style="min-width: 700px;">
+        <thead>
+          <tr>
+            <th>Pair #</th>
+            <th>Element 1</th>
+            <th>Element 2</th>
+            <th>Relation</th>
+            <th>Spacing Details</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+`;
+}
+
+
+// Add click handler to new button
+calculateSpacingButton.addEventListener('click', () => {
+  if (lastSelectedDetails.length < 2) {
+    alert('Please select at least 2 elements to calculate spacing.');
+    return;
+  }
+
+  const spacingHTML = renderPairSpacingTable(lastSelectedDetails);
+  spacingDisplay.innerHTML = spacingHTML;
+
+  // Show spacing display, hide others
+  spacingDisplay.style.display = 'block';
+  infoDisplay.style.display = 'none';
+  alignmentDisplay.style.display = 'none';
+});
+
 
   updateSelectorButton();
   loadExpectedStyles();

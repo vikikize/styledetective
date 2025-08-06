@@ -71,44 +71,42 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function createSection(title, data, validationResults = {}, expectedStyles = {}) {
-  const rows = Object.entries(data)
-    .map(([key, value]) => {
-      let rowClass = '';
-      let expectedValue = expectedStyles[key];
-      let displayValue = value;
+    const rows = Object.entries(data)
+      .map(([key, value]) => {
+        let rowClass = '';
+        let expectedValue = expectedStyles[key];
+        let displayValue = value;
 
-      if (validationResults.hasOwnProperty(key)) {
-        if (validationResults[key] === true) {
-          rowClass = 'match';
-        } else if (validationResults[key] === false) {
-          rowClass = 'mismatch';
-          // Show actual and expected values for mismatch
-          displayValue = `<span class="actual-value">${value}</span> <span class="expected-value">(Expected: ${expectedValue})</span>`;
-        } else {
-          rowClass = 'not-asserted';
+        if (validationResults.hasOwnProperty(key)) {
+          if (validationResults[key] === true) {
+            rowClass = 'match';
+          } else if (validationResults[key] === false) {
+            rowClass = 'mismatch';
+            displayValue = `<span class="actual-value">${value}</span> <span class="expected-value">(Expected: ${expectedValue})</span>`;
+          } else {
+            rowClass = 'not-asserted';
+          }
         }
-      }
 
-      return `
-        <tr class="${rowClass}">
-          <td class="property-name">${key}</td>
-          <td class="property-value" title="${value}">${displayValue}</td>
-        </tr>
-      `;
-    }).join('');
-  
-  return `
-    <div class="card-section">
-      <h4>${title}</h4>
-      <table class="properties-table">
-        <tbody>
-          ${rows}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
+        return `
+          <tr class="${rowClass}">
+            <td class="property-name">${key}</td>
+            <td class="property-value" title="${value}">${displayValue}</td>
+          </tr>
+        `;
+      }).join('');
 
+    return `
+      <div class="card-section">
+        <h4>${title}</h4>
+        <table class="properties-table">
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
 
   function renderCards(details, validationResultsPerElement = []) {
     if (details.length === 0) {
@@ -141,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ${createSection('Layout', {
             display: s.display,
             position: s.position,
-            top: s.top,
+            top: s.top,           // original CSS style value (string like '0px' or 'auto')
             right: s.right,
             bottom: s.bottom,
             left: s.left,
@@ -153,6 +151,13 @@ document.addEventListener('DOMContentLoaded', () => {
             'min-height': s.minHeight,
             'box-sizing': s.boxSizing
           }, validationResults, expectedProfile)}
+
+          ${createSection('Absolute Position & Size', {
+            'absolute-x': s.absoluteX ? s.absoluteX.toFixed(2) + 'px' : 'N/A',
+            'absolute-y': s.absoluteY ? s.absoluteY.toFixed(2) + 'px' : 'N/A',
+            'absolute-width': s.absoluteWidth ? s.absoluteWidth.toFixed(2) + 'px' : 'N/A',
+            'absolute-height': s.absoluteHeight ? s.absoluteHeight.toFixed(2) + 'px' : 'N/A'
+          })}
 
           ${createSection('Margin', {
             'margin-top': s.marginTop,
@@ -192,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'border-top-right-radius': s.borderTopRightRadius,
             'border-bottom-right-radius': s.borderBottomRightRadius,
             'border-bottom-left-radius': s.borderBottomLeftRadius
-          }, validationResults, )}
+          }, validationResults, expectedProfile)}
 
           ${createSection('Typography', {
             'font-family': s.fontFamily,

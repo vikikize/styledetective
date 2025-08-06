@@ -234,6 +234,25 @@ button {
   margin-top: 1rem;
 }
 
+/* Ensure text wraps inside alignment cards' table cells */
+#alignmentDisplay .properties-table td {
+  white-space: normal !important;  /* Allow wrapping */
+  word-break: break-word;           /* Break long words */
+  overflow-wrap: break-word;        /* Support breaking */
+  max-width: 100%;                  /* Prevent overflow */
+}
+
+.aligned {
+  color: green;
+  font-weight: 600;
+}
+
+.not-aligned {
+  color: red;
+  font-weight: 600;
+}
+
+
 
 /* Responsive adjustments for medium and small widths */
 @media (max-width: 1024px) {

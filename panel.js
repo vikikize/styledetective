@@ -254,66 +254,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return result;
   }
 
-  function renderAlignmentCards(alignmentResult) {
-    alignmentDisplay.innerHTML = '';
-    infoDisplay.style.display = 'none';
-    alignmentDisplay.style.display = 'grid';
-
-    Object.entries(alignmentResult).forEach(([key, items]) => {
-      const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
-
-      const tableRows = items.map((el, idx) => {
-        const elementNumber = idx + 2; // since first is base element #1
-        const tag = el.tag.toLowerCase();
-        const idText = el.id ? ` #${el.id}` : '';
-        const leftCell = `Element #${elementNumber} - &lt;${tag}&gt;${idText}`;
-        let rightCell = '';
-
-        if (el.diff === 0) {
-          rightCell = '✓ Aligned';
-        } else {
-          rightCell = `${el.diff > 0 ? '+' : ''}${el.diff}px off`;
-        }
-
-        return `
-          <tr>
-            <td class="property-name-cell">${leftCell}</td>
-            <td class="property-value-cell">${rightCell}</td>
-          </tr>
-        `;
-      }).join('');
-
-      const baseElement = lastSelectedDetails[0];
-      const baseTag = baseElement?.tag.toLowerCase() || 'unknown';
-      const baseId = baseElement?.id ? ` #${baseElement.id}` : '';
-      const baseLeftCell = `Element #1 - &lt;${baseTag}&gt;${baseId} (reference)`;
-      const baseRightCell = 'reference';
-
-      const tableHeader = `
-        <tr>
-          <td class="property-name-cell"><strong>${baseLeftCell}</strong></td>
-          <td class="property-value-cell"><strong>${baseRightCell}</strong></td>
-        </tr>
-      `;
-
-      const card = `
-        <div class="element-card">
-          <div class="card-header">${label} Alignment</div>
-          <div class="card-section">
-            <table class="properties-table">
-              <tbody>
-                ${tableHeader}
-                ${tableRows}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      `;
-
-      alignmentDisplay.innerHTML += card;
-    });
-  }
-
   function renderAlignmentSummaryTable(details) {
     if (details.length === 0) {
       return '';
@@ -392,9 +332,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let rightCell = '';
 
         if (el.diff === 0) {
-          rightCell = '✓ Aligned';
+          rightCell = `<span class="aligned">✓ Aligned</span>`;
         } else {
-          rightCell = `${el.diff > 0 ? '+' : ''}${el.diff}px off`;
+          rightCell = `<span class="not-aligned">${el.diff > 0 ? '+' : ''}${el.diff}px off</span>`;
         }
 
         return `

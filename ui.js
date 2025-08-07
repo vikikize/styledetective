@@ -9,14 +9,14 @@ function updateSelectorButton(selectorModeEnabled) {
   const spacingDisplay = document.getElementById('spacingDisplay');
 
   if (selectorModeEnabled) {
-    selectorButton.textContent = 'Disable Selector Mode';
+    selectorButton.textContent = '❌';
     selectorButton.classList.remove('bg-indigo');
     selectorButton.classList.add('bg-red');
     infoDisplay.style.display = 'none';
     alignmentDisplay.style.display = 'none';
     spacingDisplay.style.display = 'none';
   } else {
-    selectorButton.textContent = 'Enable Selector Mode';
+    selectorButton.textContent = '🔍';
     selectorButton.classList.remove('bg-red');
     selectorButton.classList.add('bg-indigo');
   }

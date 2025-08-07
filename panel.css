@@ -4,56 +4,158 @@ body {
   padding: 10px;
   background: #fff;
   color: #333;
+  margin: 0;
+  box-sizing: border-box;
 }
 
-button {
-  padding: 8px 14px;
+h2 {
+  font-size: 18px;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.toolbar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Consolidated base styles for all controls */
+.btn,
+.btn-icon,
+.choices__inner {
   font-size: 14px;
-  margin-right: 10px;
-  border: none;
   border-radius: 4px;
-  color: white;
+  font-weight: 500;
   cursor: pointer;
   user-select: none;
   transition: background-color 0.2s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-#selectorButton.bg-indigo {
-  background-color: #6366f1;
-}
-
-#selectorButton.bg-indigo:hover {
-  background-color: #4f46e5;
-}
-
-#selectorButton.bg-red {
-  background-color: #ef4444;
-}
-
-#selectorButton.bg-red:hover {
-  background-color: #dc2626;
-}
-
-#clearButton {
+.btn {
+  padding: 8px 14px;
+  color: white;
   background-color: #6b7280;
 }
 
-#clearButton:hover {
+.btn:hover {
   background-color: #4b5563;
 }
 
-/* Info display container: grid layout for cards */
-#infoDisplay {
-  margin-top: 15px;
+.btn-icon {
+  width: 38px;
+  height: 38px;
+  justify-content: center;
   padding: 0;
-  font-size: 13px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  display: none;
+  color: #fff;
+  background-color: #6366f1;
 }
 
-/* Alignment display container: same grid layout as infoDisplay */
+.btn-icon:hover {
+  background-color: #4f46e5;
+}
+
+.btn span.icon,
+.btn-icon span.icon {
+  filter: grayscale(100%) brightness(200%);
+  font-size: 16px;
+  line-height: 1;
+  color: white;
+}
+
+.style-profile-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.style-profile-controls label {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* Choices.js dropdown styling to match buttons */
+.choices {
+  font-family: inherit;
+  width: 100%;
+}
+
+.choices__inner {
+  padding: 8px 14px;
+  background-color: #6366f1;
+  color: #fff;
+  min-height: auto;
+}
+
+.choices__inner:hover {
+  background-color: #4f46e5;
+}
+
+.choices__inner:focus,
+.choices__inner:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.choices[data-type*=select-one]::after {
+  border-color: #fff transparent transparent;
+  border-width: 5px;
+  top: 50%;
+  margin-top: -2.5px;
+  right: 12px;
+}
+
+.choices__list--dropdown,
+.choices__list[aria-expanded] {
+  background-color: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  margin-top: 5px;
+}
+
+.choices__item {
+  padding: 8px 14px;
+  color: #333;
+}
+
+.choices__item--highlighted {
+  background-color: #f3f4f6;
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.bg-indigo { background-color: #6366f1; }
+.bg-indigo:hover { background-color: #4f46e5; }
+.bg-green { background-color: #22c55e; }
+.bg-green:hover { background-color: #16a34a; }
+.bg-blue { background-color: #3b82f6; }
+.bg-blue:hover { background-color: #2563eb; }
+.bg-purple { background-color: #8b5cf6; }
+.bg-purple:hover { background-color: #7c3aed; }
+.bg-red { background-color: #ef4444; }
+.bg-red:hover { background-color: #dc2626; }
+
+#infoDisplay,
 #alignmentDisplay {
   margin-top: 15px;
   padding: 0;
@@ -61,16 +163,14 @@ button {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
-  display: none; /* initially hidden */
 }
 
-/* Cards styling */
 .element-card {
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 6px;
   padding: 16px;
-  box-shadow: 0 1px 4px rgb(0 0 0 / 0.1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -79,7 +179,6 @@ button {
   box-sizing: border-box;
 }
 
-/* Card Header with strong contrast */
 .card-header {
   display: flex;
   align-items: center;
@@ -94,7 +193,6 @@ button {
   user-select: none;
 }
 
-/* Badge number styling */
 .badge-number {
   flex-shrink: 0;
   background-color: #6366f1;
@@ -110,7 +208,6 @@ button {
   user-select: none;
 }
 
-/* Tag name styling */
 .tag-name {
   font-family: 'Courier New', Courier, monospace;
   color: #3730a3;
@@ -121,7 +218,6 @@ button {
   text-overflow: ellipsis;
 }
 
-/* Element ID and Classes styling */
 .element-id,
 .element-classes {
   color: #6b7280;
@@ -139,7 +235,6 @@ button {
   cursor: help;
 }
 
-/* Sections */
 .card-section {
   margin-bottom: 14px;
 }
@@ -159,7 +254,6 @@ button {
   word-break: break-word;
 }
 
-/* Properties table - for key-value pairs */
 .properties-table {
   width: 100%;
   border-collapse: collapse;
@@ -169,11 +263,9 @@ button {
 .properties-table td {
   padding: 4px 8px;
   vertical-align: top;
-  /* Remove cell borders */
   border-bottom: none;
 }
 
-/* Property name cell */
 .property-name-cell {
   font-weight: 600;
   color: #4b5563;
@@ -182,7 +274,6 @@ button {
   user-select: text;
 }
 
-/* Property value cell */
 .property-value-cell {
   font-family: 'Courier New', Courier, monospace;
   color: #111827;
@@ -192,26 +283,25 @@ button {
   user-select: text;
 }
 
-/* Card hover effect */
 .element-card:hover {
-  box-shadow: 0 6px 16px rgb(0 0 0 / 0.15);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
   background-color: #fefefe;
   transition: background-color 0.2s ease, box-shadow 0.3s ease;
 }
 
 .match td {
-  background-color: #d1fae5; /* light green */
-  color: #065f46; /* dark green */
+  background-color: #d1fae5;
+  color: #065f46;
 }
 
 .mismatch td {
-  background-color: #fee2e2; /* light red */
-  color: #991b1b; /* dark red */
+  background-color: #fee2e2;
+  color: #991b1b;
 }
 
 .not-asserted td {
-  background-color: #fef3c7; /* light yellow */
-  color: #92400e; /* dark yellow */
+  background-color: #fef3c7;
+  color: #92400e;
 }
 
 .property-value .actual-value {
@@ -225,21 +315,18 @@ button {
   margin-left: 8px;
 }
 
-/* Container for alignment cards (below summary table) */
 .alignment-cards-container {
   display: grid;
   gap: 1rem;
-  /* Responsive columns: min 280px per card, auto-fit */
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   margin-top: 1rem;
 }
 
-/* Ensure text wraps inside alignment cards' table cells */
 #alignmentDisplay .properties-table td {
-  white-space: normal !important;  /* Allow wrapping */
-  word-break: break-word;           /* Break long words */
-  overflow-wrap: break-word;        /* Support breaking */
-  max-width: 100%;                  /* Prevent overflow */
+  white-space: normal !important;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .aligned {
@@ -250,6 +337,10 @@ button {
 .not-aligned {
   color: red;
   font-weight: 600;
+}
+
+#spacingDisplay {
+  margin-top: 16px;
 }
 
 .nested-spacing-table {
@@ -277,44 +368,6 @@ button {
   width: 40%;
 }
 
-
-
-/* Responsive adjustments for medium and small widths */
-@media (max-width: 1024px) {
-  #infoDisplay {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  #alignmentDisplay {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-}
-
-@media (max-width: 600px) {
-  #infoDisplay {
-    grid-template-columns: 1fr !important;
-  }
-  #alignmentDisplay {
-    grid-template-columns: 1fr !important;
-  }
-
-  .card-header {
-    font-size: 15px;
-  }
-
-  .badge-number {
-    width: 20px;
-    height: 20px;
-    line-height: 20px;
-    font-size: 12px;
-  }
-}
-
-#spacingDisplay{
-  margin-top: 16px;
-}
-
-
-/* Consistent spacing table style */
 .spacing-summary-table {
   width: 100%;
   border-collapse: collapse;
@@ -341,3 +394,33 @@ button {
   border-radius: 3px;
 }
 
+/* Responsive adjustments for medium and small widths */
+@media (max-width: 1024px) {
+  #infoDisplay,
+  #alignmentDisplay {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  #infoDisplay,
+  #alignmentDisplay {
+    grid-template-columns: 1fr;
+  }
+  .card-header {
+    font-size: 15px;
+  }
+  .badge-number {
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    font-size: 12px;
+  }
+  .action-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .action-buttons .btn {
+    width: 100%;
+  }
+}

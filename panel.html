@@ -5,22 +5,42 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>DevTools Style & Alignment Validator</title>
   <link rel="stylesheet" href="panel.css" />
+
 </head>
 <body>
   <div class="toolbar">
-    <button id="selectorButton" class="btn bg-indigo">Enable Selector Mode</button>
-    <button id="clearButton" class="btn">Clear Selection</button>
-    <select id="styleProfileDropdown" class="dropdown"></select>
-    <button id="validateButton" class="btn bg-green">Validate Styles</button>
-    <button id="validateAlignmentButton" class="btn bg-blue">Validate Alignment</button>
-    <button id="calculateSpacingButton" class="btn bg-purple text-white">Calculate Spacing</button>
+    <div class="toolbar-header">
+      <h2>DevTools Style & Alignment Validator</h2>
+      <button id="selectorButton" class="btn-icon">
+        <span class="icon" role="img" aria-label="Magnifying glass">🔍</span>
+      </button>
+    </div>
+
+    <div class="style-profile-controls">
+      <label for="styleProfileDropdown">Select Styles to Verify</label>
+      <select id="styleProfileDropdown" class="dropdown"></select>
+    </div>
+    
+    <div class="action-buttons">
+      <button id="validateButton" class="btn bg-green">
+        <span class="icon" role="img" aria-label="Check mark">✅</span> <span>Validate Styles</span>
+      </button>
+      <button id="validateAlignmentButton" class="btn bg-blue">
+        <span class="icon" role="img" aria-label="Ruler horizontal">📏</span> <span>Validate Alignment</span>
+      </button>
+      <button id="calculateSpacingButton" class="btn bg-purple">
+        <span class="icon" role="img" aria-label="Ruler vertical">📐</span> <span>Calculate Spacing</span>
+      </button>
+      <button id="clearButton" class="btn">
+        <span class="icon" role="img" aria-label="Trash can">🗑️</span> <span>Clear Selection</span>
+      </button>
+    </div>
   </div>
 
   <div id="infoDisplay" class="cards-container" style="display:none;"></div>
   <div id="alignmentDisplay" class="cards-container" style="display:none;"></div>
   <div id="spacingDisplay" style="display:none;"></div>
   
-  <!-- Load segregated JavaScript files in the correct order -->
   <script src="utils.js"></script>
   <script src="validation.js"></script>
   <script src="ui.js"></script>

@@ -8,8 +8,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const clearButton = document.getElementById('clearButton');
   const validateButton = document.getElementById('validateButton');
   const validateAlignmentButton = document.getElementById('validateAlignmentButton');
-  const styleProfileDropdown = document.getElementById('styleProfileDropdown');
+  const styleProfileInput = document.getElementById('styleProfileInput');
+  const styleProfileList = document.getElementById('styleProfileList');
   const calculateSpacingButton = document.getElementById('calculateSpacingButton');
+  const clearSearchButton = document.getElementById('clearSearchButton'); // New reference for the close button
 
   // Get references to display containers (managed by ui.js, but needed for direct display control)
   const infoDisplay = document.getElementById('infoDisplay');
@@ -20,10 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectorModeEnabled = false;
   let expectedStylesProfiles = {};
   let selectedProfileName = null;
-  let lastSelectedDetails = []; // Stores details of elements selected on the inspected page
+  let lastSelectedDetails = [];
 
   /**
-   * Loads expected style profiles from 'expectedStyles.json' and populates the dropdown.
+   * Loads expected style profiles from 'expectedStyles.json' and populates the datalist.
    * Ensures graceful failure if the JSON is empty or malformed.
    */
   function loadExpectedStyles() {
@@ -35,30 +37,30 @@ document.addEventListener('DOMContentLoaded', () => {
         return res.json();
       })
       .then(data => {
-        // Check if data is a valid non-empty object
         if (typeof data !== 'object' || data === null || Array.isArray(data) || Object.keys(data).length === 0) {
           console.error('Error: expectedStyles.json is empty or malformed (not a non-empty object).');
-          expectedStylesProfiles = {}; // Ensure it's an empty object to prevent further errors
-          styleProfileDropdown.innerHTML = '<option value="">No profiles found</option>';
+          expectedStylesProfiles = {};
+          styleProfileInput.placeholder = 'No profiles found';
+          styleProfileInput.disabled = true;
           selectedProfileName = null;
           return;
         }
 
         expectedStylesProfiles = data;
-        styleProfileDropdown.innerHTML = ''; // Clear existing options
+        styleProfileList.innerHTML = '';
         Object.keys(expectedStylesProfiles).forEach(profileName => {
           const option = document.createElement('option');
           option.value = profileName;
-          option.textContent = profileName;
-          styleProfileDropdown.appendChild(option);
+          styleProfileList.appendChild(option);
         });
-        // Set initial selected profile, prioritizing the first one if none is selected
-        selectedProfileName = styleProfileDropdown.value || Object.keys(expectedStylesProfiles)[0];
+        selectedProfileName = null;
+        styleProfileInput.value = '';
       })
       .catch(error => {
         console.error('Error loading expected styles from expectedStyles.json:', error);
-        expectedStylesProfiles = {}; // Ensure it's empty on any fetch/parse error
-        styleProfileDropdown.innerHTML = '<option value="">Error loading profiles</option>';
+        expectedStylesProfiles = {};
+        styleProfileInput.placeholder = 'Error loading profiles';
+        styleProfileInput.disabled = true;
         selectedProfileName = null;
       });
   }
@@ -68,14 +70,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Toggle selector mode on the inspected page
   selectorButton.addEventListener('click', () => {
     selectorModeEnabled = !selectorModeEnabled;
-    // Call UI function to update button appearance
     updateSelectorButton(selectorModeEnabled);
-    // Send message to background script to inject/remove selector logic
     runtime.sendMessage({
       type: 'inject-selector-logic',
       enabled: selectorModeEnabled,
-      apiName: typeof browser !== 'undefined' ? 'browser' : 'chrome', // Pass API name for background script
-      tabId: devtools.inspectedWindow.tabId // Pass current tab ID
+      apiName: typeof browser !== 'undefined' ? 'browser' : 'chrome',
+      tabId: devtools.inspectedWindow.tabId
     }).catch(console.error);
   });
 
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
       type: 'clear-selection',
       tabId: devtools.inspectedWindow.tabId
     }).catch(console.error);
-    lastSelectedDetails = []; // Clear local state
+    lastSelectedDetails = [];
     infoDisplay.innerHTML = '';
     alignmentDisplay.innerHTML = '';
     spacingDisplay.innerHTML = '';
@@ -97,24 +97,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // Validate styles of selected elements
   validateButton.addEventListener('click', () => {
     if (!lastSelectedDetails.length) {
-      // Using alert for simplicity as per original code, but a custom modal is recommended for extensions
       alert('No elements selected to validate');
       return;
     }
     if (!selectedProfileName || !expectedStylesProfiles[selectedProfileName]) {
-      alert('Please select a valid style profile');
+      alert('Please select a valid style profile from the list.');
       return;
     }
+    
+    console.log('Selected Profile for Validation:', selectedProfileName);
 
-    // Hide other displays
     alignmentDisplay.style.display = 'none';
     spacingDisplay.style.display = 'none';
-    infoDisplay.style.display = 'grid'; // Ensure info display is visible
+    infoDisplay.style.display = 'grid';
 
     const expectedProfile = expectedStylesProfiles[selectedProfileName];
-    // Call validation function from validation.js
     const results = lastSelectedDetails.map(el => validateElementStyles(el.styles, expectedProfile));
-    // Call UI function to render cards with validation results
     renderCards(lastSelectedDetails, results, expectedStylesProfiles, selectedProfileName);
   });
 
@@ -124,12 +122,10 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Please select at least 2 elements to validate alignment');
       return;
     }
-    spacingDisplay.style.display = 'none'; // Hide spacing display
-    infoDisplay.style.display = 'none'; // Hide info display
+    spacingDisplay.style.display = 'none';
+    infoDisplay.style.display = 'none';
 
-    // Call validation function from validation.js
     const alignmentResult = validateAlignment(lastSelectedDetails);
-    // Call UI function to render alignment summary and cards
     renderAlignmentCardsWithSummary(lastSelectedDetails, alignmentResult, lastSelectedDetails);
   });
 
@@ -140,35 +136,46 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Call UI function to render spacing table, passing the validation function
     const spacingHTML = renderPairSpacingTable(lastSelectedDetails, calculatePairSpacing);
     spacingDisplay.innerHTML = spacingHTML;
 
-    // Show spacing display, hide others
     spacingDisplay.style.display = 'block';
     infoDisplay.style.display = 'none';
     alignmentDisplay.style.display = 'none';
   });
 
-  // Update selected profile name when dropdown changes
-  styleProfileDropdown.addEventListener('change', e => {
-    selectedProfileName = e.target.value;
+  // Update selected profile name when input changes
+  styleProfileInput.addEventListener('input', e => {
+    const value = e.target.value;
+    if (expectedStylesProfiles.hasOwnProperty(value)) {
+      selectedProfileName = value;
+    } else {
+      selectedProfileName = null;
+    }
+    // Show/hide the clear button based on input value
+    clearSearchButton.style.display = value ? 'block' : 'none';
+  });
+  
+  // Clear the search input when the clear button is clicked
+  clearSearchButton.addEventListener('click', () => {
+    styleProfileInput.value = '';
+    selectedProfileName = null;
+    clearSearchButton.style.display = 'none';
+    styleProfileInput.focus(); // Return focus to the input field
   });
 
   // Listen for messages from the content script (via background.js)
   runtime.onMessage.addListener(message => {
     if (message.type === 'elementsSelected') {
-      lastSelectedDetails = message.details; // Update local state with selected elements
-      // Ensure info display is visible when elements are selected
+      lastSelectedDetails = message.details;
       infoDisplay.style.display = 'grid';
       alignmentDisplay.style.display = 'none';
       spacingDisplay.style.display = 'none';
-      // Render cards for the newly selected elements (without validation initially)
       renderCards(lastSelectedDetails, [], expectedStylesProfiles, selectedProfileName);
     }
   });
 
   // Initial setup when the panel loads
-  updateSelectorButton(selectorModeEnabled); // Set initial button state
-  loadExpectedStyles(); // Load style profiles
+  updateSelectorButton(selectorModeEnabled);
+  loadExpectedStyles();
 });

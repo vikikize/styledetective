@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Universal DevTools Panel - Chrome",
+  "name": "Style Detective",
   "version": "1.0",
-  "description": "DevTools panel compatible with Chrome",
+  "description": "Style Detective for Google Chrome",
   "permissions": [
     "tabs",
     "scripting"

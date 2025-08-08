@@ -11,7 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const styleProfileInput = document.getElementById('styleProfileInput');
   const styleProfileList = document.getElementById('styleProfileList');
   const calculateSpacingButton = document.getElementById('calculateSpacingButton');
-  const clearSearchButton = document.getElementById('clearSearchButton'); // New reference for the close button
+  const clearSearchButton = document.getElementById('clearSearchButton');
+  const interactionModeSelect = document.getElementById('interactionModeSelect'); // New reference for the close button
 
   // Get references to display containers (managed by ui.js, but needed for direct display control)
   const infoDisplay = document.getElementById('infoDisplay');
@@ -20,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // State variables for the panel
   let selectorModeEnabled = false;
+  let selectionMode = 'Hover-On'; // Default mode
   let expectedStylesProfiles = {};
   let selectedProfileName = null;
   let lastSelectedDetails = [];
@@ -66,6 +68,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- Event Listeners ---
+  interactionModeSelect.addEventListener('change', (e) => {
+    selectionMode = e.target.value;
+  });
 
   // Toggle selector mode on the inspected page
   selectorButton.addEventListener('click', () => {
@@ -75,7 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
       type: 'inject-selector-logic',
       enabled: selectorModeEnabled,
       apiName: typeof browser !== 'undefined' ? 'browser' : 'chrome',
-      tabId: devtools.inspectedWindow.tabId
+      tabId: devtools.inspectedWindow.tabId,
+      selectionMode: selectionMode
     }).catch(console.error);
   });
 

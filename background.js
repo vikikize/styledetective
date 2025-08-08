@@ -1,8 +1,8 @@
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'inject-selector-logic') {
-    const { enabled, apiName, tabId } = message;
+    const { enabled, apiName, tabId, selectionMode } = message;
 
-    const injectedSelectorLogic = (enabled) => {
+    const injectedSelectorLogic = (enabled, selectionMode) => {
       if (!window.__selectorState__) {
         window.__selectorState__ = {
           active: false,
@@ -230,12 +230,31 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       const onMouseOverHandler = (event) => {
         const el = event.target;
-        if (state.lastHoveredElement === el) return; // skip if same element
-
         state.lastHoveredElement = el;
 
-        if (!state.hoverStylesCache.has(el)) {
+        if (selectionMode === 'hover-on') {
+          setTimeout(() => {
+            const snapshot = getStyleSnapshot(el);
+            state.hoverStylesCache.set(el, snapshot);
+          }, 100);
+        } else if (selectionMode === 'hover-off') {
+          el.setAttribute('data-original-pointer-events', el.style.pointerEvents || '');
+          el.style.pointerEvents = 'none';
           state.hoverStylesCache.set(el, getStyleSnapshot(el));
+          const original = el.getAttribute('data-original-pointer-events');
+          if (original !== null) {
+            el.style.pointerEvents = original;
+            el.removeAttribute('data-original-pointer-events');
+          } else {
+            el.style.removeProperty('pointer-events'); // fallback
+          }
+        } else if (selectionMode === 'focus') {
+          state.hoverStylesCache.set(el, getStyleSnapshot(el));
+        } else {
+          setTimeout(() => {
+            const snapshot = getStyleSnapshot(el);
+            state.hoverStylesCache.set(el, snapshot);
+          }, 100);
         }
       };
 
@@ -271,7 +290,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }
 
             // On select, cache style snapshot if not cached
-            if (!state.hoverStylesCache.has(el)) {
+            if (selectionMode === 'hover-on') {
+              if (!state.hoverStylesCache.has(el)) {
+                state.hoverStylesCache.set(el, getStyleSnapshot(el));
+              }
+            } else if (selectionMode === 'focus') {
+              state.hoverStylesCache.set(el, getStyleSnapshot(el));
+            }else if (selectionMode === 'hover-off') {
+              // For hover-off, we cache the style snapshot only if not already cached
+              if (!state.hoverStylesCache.has(el)) {
+                state.hoverStylesCache.set(el, getStyleSnapshot(el));
+              }
+            } 
+            else {
+              // For other modes, always cache the style snapshot
               state.hoverStylesCache.set(el, getStyleSnapshot(el));
             }
 
@@ -304,7 +336,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.scripting.executeScript({
       target: { tabId },
       func: injectedSelectorLogic,
-      args: [enabled]
+      args: [enabled, selectionMode],
     });
 
     sendResponse({ success: true });
@@ -318,6 +350,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (!window.__selectorState__) return;
         const state = window.__selectorState__;
         state.selectedElements.clear();
+        state.hoverStylesCache = new WeakMap();
         if (window.__highlightOverlay__) {
           window.__highlightOverlay__.innerHTML = '';
         }

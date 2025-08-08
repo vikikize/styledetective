@@ -9,7 +9,7 @@ body {
 }
 
 /* --- Branding Change: Header Style --- */
-/* The main h2 header now has a background and padding similar to the card headers. */
+/* The h2 no longer has a background or padding, allowing the parent flexbox to manage it */
 h2 {
   font-size: 16px;
   font-weight: 700;
@@ -18,9 +18,6 @@ h2 {
   overflow: hidden;
   text-overflow: ellipsis;
   color: #4e6b7d; /* Deep blue header */
-  background-color: #e6e9ed;
-  padding: 8px 12px;
-  border-radius: 4px;
 }
 
 .toolbar {
@@ -31,12 +28,56 @@ h2 {
   border-bottom: 1px solid #dcdcdc; /* Subtle gray divider */
 }
 
+/* Corrected .toolbar-header for the requested layout */
 .toolbar-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* Pushes children to opposite ends */
   align-items: center;
   gap: 10px;
   background-color: #e6e9ed;
+  padding: 8px 12px; /* Padding for the entire header bar */
+  border-radius: 4px;
+}
+
+/* New wrapper to contain the selector button and the dropdown */
+.selector-controls {
+  display: flex;
+  align-items: center;
+  gap: 0; /* Removes the gap between elements */
+}
+
+/* Base style for the dropdown */
+.mode-select {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 4px;
+  border: 1px solid #dcdcdc; /* Subtle border */
+  background-color: #fdfcf9; /* Card background color */
+  color: #4e6b7d; /* Deep blue text color */
+  padding: 8px 12px;
+  min-height: 38px; /* Match the height of the button */
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  border-top-left-radius: 0; /* Remove border-radius for a flush look */
+  border-bottom-left-radius: 0; /* Remove border-radius for a flush look */
+  border-left: none; /* Remove left border for a flush look */
+}
+
+/* Hover and focus states for the dropdown */
+.mode-select:hover,
+.mode-select:focus {
+  outline: none;
+  border-color: #a1885a; /* Ochre border on hover/focus */
+  border-left: none; /* Keep left border removed on hover/focus */
+  box-shadow: 0 0 0 2px rgba(161, 136, 90, 0.2), -1px 0 0 2px rgba(161, 136, 90, 0.2);
+}
+
+/* Make sure the options within the dropdown are also styled */
+.mode-select option {
+  color: #333333;
+  background-color: #ffffff;
 }
 
 /* Consolidated base styles for all controls to ensure consistent height */
@@ -67,6 +108,7 @@ h2 {
   background-color: #a1885a; /* Ochre on hover */
 }
 
+/* Updated .btn-icon for no gap */
 .btn-icon {
   width: 38px;
   height: 38px;
@@ -74,6 +116,8 @@ h2 {
   padding: 0;
   color: #fff;
   background-color: #4e6b7d; /* Deep blue icon button */
+  border-top-right-radius: 0; /* Remove border-radius for no gap */
+  border-bottom-right-radius: 0; /* Remove border-radius for no gap */
 }
 
 .btn-icon:hover {

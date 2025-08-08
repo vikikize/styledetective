@@ -10,9 +10,16 @@
   <div class="toolbar">
     <div class="toolbar-header">
       <h2>Style Detective</h2>
-      <button id="selectorButton" class="btn-icon">
-        <span class="icon" role="img" aria-label="Magnifying glass">🔍</span>
-      </button>
+      <div class="selector-controls">
+        <button id="selectorButton" class="btn-icon">
+          <span class="icon" role="img" aria-label="Magnifying glass">🔍</span>
+        </button>
+        <select id="interactionModeSelect" class="mode-select">
+           <option value="hover-on">Hover-On</option>
+          <option value="hover-off">Hover-Off</option>
+          <option value="focus">Focus</option>
+        </select>
+      </div>
     </div>
 
     <div class="style-profile-controls">

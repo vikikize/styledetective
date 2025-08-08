@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element Style Capture Test</title>
+    <!-- Tailwind CSS for quick styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+        .target-element {
+            width: 200px;
+            height: 100px;
+            /* --- BASE (Hover-Off) Styles --- */
+            background-color: #a78bfa; /* 🎨 Purple base */
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 40px auto;
+            border-radius: 8px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease, border 0.3s ease;
+            cursor: pointer;
+            border: 2px solid #a78bfa; /* 🖌️ Purple border base */
+            transform: translateY(0px); /* 📏 No transform base */
+        }
+
+        /* --- HOVER-ON Styles --- */
+        .target-element:hover,
+        .target-element.hover-simulated {
+            background-color: #8b5cf6; /* 🎨 Darker purple on hover */
+            color: #fefefe;
+            transform: translateY(-3px); /* 📏 Move up on hover */
+            border-color: #6d28d9; /* 🖌️ Dark purple border on hover */
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        /* --- FOCUS Styles --- */
+        .target-element:focus,
+        .target-element.focus-simulated {
+            outline: none;
+            border: 2px solid #2563eb; /* 🖌️ Blue border on focus */
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.3);
+            background-color: #3b82f6; /* 🎨 Blue on focus */
+            /* transform remains default/none for focus state */
+        }
+        .target-element:focus-visible { /* For keyboard navigation */
+            outline: 2px solid #2563eb;
+            outline-offset: 2px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .button-group button {
+            padding: 10px 20px;
+            background-color: #4e6b7d; /* Deep blue button */
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            font-weight: 600;
+        }
+        .button-group button:hover {
+            background-color: #5d8299;
+            transform: translateY(-1px);
+        }
+        .button-group button:active {
+            transform: translateY(0);
+        }
+
+        pre {
+            background-color: #1e293b; /* Dark slate for code */
+            color: #e2e8f0; /* Light text */
+            padding: 16px;
+            border-radius: 8px;
+            text-align: left;
+            margin-top: 30px;
+            overflow-x: auto;
+            max-height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Element Style Capture Test</h1>
+
+        <div id="testElement" class="target-element" tabindex="0">
+            Hover or Focus Me
+        </div>
+
+        <div class="button-group">
+            <button id="getBaseStyles">Get Base Styles (Hover-Off)</button>
+            <button id="getHoverStyles">Get Hover-On Styles</button>
+            <button id="getFocusStyles">Get Focus Styles</button>
+            <button id="resetStyles">Reset Element</button>
+        </div>
+
+        <pre id="output" class="text-sm">Captured Styles will appear here...</pre>
+    </div>
+
+    <script>
+        const testElement = document.getElementById('testElement');
+        const output = document.getElementById('output');
+
+        // This is your getStyleSnapshot function, copied directly from background.js
+        function getStyleSnapshot(el) {
+            const style = window.getComputedStyle(el);
+            const rect = el.getBoundingClientRect();
+
+            return {
+                tagName: el.tagName,
+                id: el.id,
+                classList: Array.from(el.classList).join(' '),
+
+                display: style.display,
+                position: style.position,
+                top: style.top,
+                right: style.right,
+                bottom: style.bottom,
+                left: style.left,
+                width: style.width,
+                height: style.height,
+                maxWidth: style.maxWidth,
+                maxHeight: style.maxHeight,
+                minWidth: style.minWidth,
+                minHeight: style.minHeight,
+                boxSizing: style.boxSizing,
+
+                marginTop: style.marginTop,
+                marginRight: style.marginRight,
+                marginBottom: style.marginBottom,
+                marginLeft: style.marginLeft,
+
+                paddingTop: style.paddingTop,
+                paddingRight: style.paddingRight,
+                paddingBottom: style.paddingBottom,
+                paddingLeft: style.paddingLeft,
+
+                borderTop: style.borderTop,
+                borderTopWidth: style.borderTopWidth,
+                borderTopStyle: style.borderTopStyle,
+                borderTopColor: style.borderTopColor,
+                borderRight: style.borderRight,
+                borderRightWidth: style.borderRightWidth,
+                borderRightStyle: style.borderRightStyle,
+                borderRightColor: style.borderRightColor,
+                borderBottom: style.borderBottom,
+                borderBottomWidth: style.borderBottomWidth,
+                borderBottomStyle: style.borderBottomStyle,
+                borderBottomColor: style.borderBottomColor,
+                borderLeft: style.borderLeft,
+                borderLeftWidth: style.borderLeftWidth,
+                borderLeftStyle: style.borderLeftStyle,
+                borderLeftColor: style.borderLeftColor,
+
+                borderTopLeftRadius: style.borderTopLeftRadius,
+                borderTopRightRadius: style.borderTopRightRadius,
+                borderBottomRightRadius: style.borderBottomRightRadius,
+                borderBottomLeftRadius: style.borderBottomLeftRadius,
+
+                fontFamily: style.fontFamily,
+                fontSize: style.fontSize,
+                fontWeight: style.fontWeight,
+                fontStyle: style.fontStyle,
+                fontVariant: style.fontVariant,
+                letterSpacing: style.letterSpacing,
+                lineHeight: style.lineHeight,
+                textAlign: style.textAlign,
+                textDecoration: style.textDecoration,
+                textIndent: style.textIndent,
+                textShadow: style.textShadow,
+                textTransform: style.textTransform,
+                whiteSpace: style.whiteSpace,
+                wordSpacing: style.wordSpacing,
+                wordBreak: style.wordBreak,
+                wordWrap: style.wordWrap,
+
+                color: style.color,
+                background: style.background,
+                backgroundColor: style.backgroundColor,
+                backgroundImage: style.backgroundImage,
+                backgroundPosition: style.backgroundPosition,
+                backgroundRepeat: style.backgroundRepeat,
+                backgroundSize: style.backgroundSize,
+                backgroundAttachment: style.backgroundAttachment,
+                opacity: style.opacity,
+
+                // Absolute position and size from bounding rect
+                absoluteX: rect.x,
+                absoluteY: rect.y,
+                absoluteWidth: rect.width,
+                absoluteHeight: rect.height,
+            };
+        }
+
+        // --- Helper functions for test harness ---
+        function resetElementState() {
+            testElement.classList.remove('hover-simulated', 'focus-simulated');
+            testElement.blur(); // Remove focus
+            output.textContent = 'Captured Styles will appear here...';
+        }
+
+        function displaySnapshot(snapshot) {
+            output.textContent = JSON.stringify(snapshot, null, 2);
+        }
+
+        // --- Event Listeners for buttons ---
+        document.getElementById('getBaseStyles').addEventListener('click', () => {
+            resetElementState(); // Ensure element is in a base state
+            const snapshot = getStyleSnapshot(testElement);
+            displaySnapshot(snapshot);
+            console.log("Base Styles (Hover-Off) Captured:", snapshot);
+        });
+
+        document.getElementById('getHoverStyles').addEventListener('click', () => {
+            resetElementState(); // Start from clean state
+            testElement.classList.add('hover-simulated'); // Apply the class that triggers :hover styles
+            
+            // Allow a brief moment for browser to apply styles
+            setTimeout(() => {
+                const snapshot = getStyleSnapshot(testElement);
+                displaySnapshot(snapshot);
+                console.log("Hover-On Styles Captured:", snapshot);
+                // Important: remove the class after capturing for the test harness
+                testElement.classList.remove('hover-simulated');
+            }, 50); // Small delay
+        });
+
+        document.getElementById('getFocusStyles').addEventListener('click', () => {
+            resetElementState(); // Start from clean state
+            testElement.focus(); // Programmatically focus the element
+            testElement.classList.add('focus-simulated'); // Add class if :focus doesn't apply enough visual changes
+            
+            // Allow a brief moment for browser to apply styles
+            setTimeout(() => {
+                const snapshot = getStyleSnapshot(testElement);
+                displaySnapshot(snapshot);
+                console.log("Focus Styles Captured:", snapshot);
+                // Important: remove the class after capturing for the test harness
+                testElement.classList.remove('focus-simulated');
+            }, 50); // Small delay
+        });
+
+        document.getElementById('resetStyles').addEventListener('click', () => {
+            resetElementState();
+            console.log("Element state reset.");
+        });
+
+        // Add a blur listener to remove focus-simulated class if user clicks away
+        testElement.addEventListener('blur', () => {
+            testElement.classList.remove('focus-simulated');
+        });
+    </script>
+</body>
+</html>

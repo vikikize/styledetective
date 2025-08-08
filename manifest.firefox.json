@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Style Detective",
   "version": "1.0",
-  "description": "Style Detective for Google Chrome",
+  "description": "Style Detective for Mozilla Firefox",
   "permissions": [
     "tabs",
     "scripting"
@@ -11,7 +11,8 @@
     "<all_urls>"
   ],
   "background": {
-    "service_worker": "background.js"
+    "scripts": ["background.js"],
+    "persistent": false
   },
   "content_scripts": [
     {

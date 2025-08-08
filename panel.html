@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Style Detective</title>
   <link rel="stylesheet" href="panel.css" />
+  <link rel="stylesheet" href="choices.min.css"/>
 </head>
 <body>
   <div class="toolbar">
@@ -24,16 +25,14 @@
 
     <div class="style-profile-controls">
       <label for="styleProfileInput">Select Styles to Verify</label>
-      <div class="searchable-input-wrapper">
-        <input type="text" id="styleProfileInput" list="styleProfileList" class="searchable-input" placeholder="Search for a style profile...">
-        <datalist id="styleProfileList"></datalist>
-        <button id="clearSearchButton" class="clear-search-btn" style="display: none;">&times;</button>
-      </div>
+      <select id="styleProfileList">
+        <option value="" disabled selected>Select style profile...</option>
+      </select>
     </div>
     
     <div class="action-buttons">
       <button id="validateButton" class="btn bg-blue">
-        <span class="icon" role="img" aria-label="Check mark">✅</span> <span>Validate Styles</span>
+       <span class="icon" role="img" aria-label="Check mark">✅</span> <span>Validate Styles</span>
       </button>
       <button id="validateAlignmentButton" class="btn bg-blue">
         <span class="icon" role="img" aria-label="Ruler horizontal">📏</span> <span>Validate Alignment</span>
@@ -55,5 +54,7 @@
   <script src="validation.js"></script>
   <script src="ui.js"></script>
   <script src="panel.js"></script>
+  <script src="choices.min.js"></script>
+
 </body>
 </html>

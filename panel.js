@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const clearButton = document.getElementById('clearButton');
   const validateButton = document.getElementById('validateButton');
   const validateAlignmentButton = document.getElementById('validateAlignmentButton');
-  const styleProfileInput = document.getElementById('styleProfileInput');
+  // const styleProfileInput = document.getElementById('styleProfileInput');
   const styleProfileList = document.getElementById('styleProfileList');
   const calculateSpacingButton = document.getElementById('calculateSpacingButton');
   const clearSearchButton = document.getElementById('clearSearchButton');
@@ -26,46 +26,74 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedProfileName = null;
   let lastSelectedDetails = [];
 
+  const choicesInstance = new Choices(styleProfileList, {
+    searchEnabled: true,
+    shouldSort: false,
+    itemSelectText: '',
+    placeholderValue: 'Select style profile...',
+    searchPlaceholderValue: 'Type to search profiles...',
+    removeItemButton: true,  // user can clear selection with x button
+  });
+
   /**
    * Loads expected style profiles from 'expectedStyles.json' and populates the datalist.
    * Ensures graceful failure if the JSON is empty or malformed.
    */
   function loadExpectedStyles() {
-    return fetch(runtime.getURL('expectedStyles.json'))
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then(data => {
-        if (typeof data !== 'object' || data === null || Array.isArray(data) || Object.keys(data).length === 0) {
-          console.error('Error: expectedStyles.json is empty or malformed (not a non-empty object).');
-          expectedStylesProfiles = {};
-          styleProfileInput.placeholder = 'No profiles found';
-          styleProfileInput.disabled = true;
-          selectedProfileName = null;
-          return;
-        }
-
-        expectedStylesProfiles = data;
-        styleProfileList.innerHTML = '';
-        Object.keys(expectedStylesProfiles).forEach(profileName => {
-          const option = document.createElement('option');
-          option.value = profileName;
-          styleProfileList.appendChild(option);
-        });
-        selectedProfileName = null;
-        styleProfileInput.value = '';
-      })
-      .catch(error => {
-        console.error('Error loading expected styles from expectedStyles.json:', error);
+  return fetch(runtime.getURL('expectedStyles.json'))
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      return res.json();
+    })
+    .then(data => {
+      if (typeof data !== 'object' || data === null || Array.isArray(data) || Object.keys(data).length === 0) {
+        console.error('expectedStyles.json empty or malformed.');
         expectedStylesProfiles = {};
-        styleProfileInput.placeholder = 'Error loading profiles';
-        styleProfileInput.disabled = true;
+        choicesInstance.clearStore();
+        choicesInstance.disable();
         selectedProfileName = null;
-      });
-  }
+        return;
+      }
+
+      expectedStylesProfiles = data;
+      console.log('Loaded expected styles:', expectedStylesProfiles);
+
+      // Clear all choices, including placeholder
+      choicesInstance.clearStore();
+
+      // Add placeholder option (disabled, selected)
+      choicesInstance.setChoices(
+        [{ value: '', label: 'Select style profile...', disabled: true, selected: true }],
+        'value',
+        'label',
+        false
+      );
+
+      // Add profile options dynamically
+      const profiles = Object.keys(expectedStylesProfiles).map(name => ({
+        value: name,
+        label: name,
+      }));
+
+      choicesInstance.setChoices(profiles, 'value', 'label', false);
+
+      choicesInstance.enable();
+      selectedProfileName = null;
+    })
+    .catch(err => {
+      console.error('Error loading expected styles:', err);
+      expectedStylesProfiles = {};
+      choicesInstance.clearStore();
+      choicesInstance.disable();
+      selectedProfileName = null;
+    });
+}
+
+styleProfileList.addEventListener('change', (event) => {
+  selectedProfileName = event.target.value || null;
+  console.log('Selected profile:', selectedProfileName);
+  // You can add any additional logic here if needed
+});
 
   // --- Event Listeners ---
   interactionModeSelect.addEventListener('change', (e) => {
@@ -151,24 +179,24 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Update selected profile name when input changes
-  styleProfileInput.addEventListener('input', e => {
-    const value = e.target.value;
-    if (expectedStylesProfiles.hasOwnProperty(value)) {
-      selectedProfileName = value;
-    } else {
-      selectedProfileName = null;
-    }
-    // Show/hide the clear button based on input value
-    clearSearchButton.style.display = value ? 'block' : 'none';
-  });
+  // styleProfileInput.addEventListener('input', e => {
+  //   const value = e.target.value;
+  //   if (expectedStylesProfiles.hasOwnProperty(value)) {
+  //     selectedProfileName = value;
+  //   } else {
+  //     selectedProfileName = null;
+  //   }
+  //   // Show/hide the clear button based on input value
+  //   clearSearchButton.style.display = value ? 'block' : 'none';
+  // });
   
   // Clear the search input when the clear button is clicked
-  clearSearchButton.addEventListener('click', () => {
-    styleProfileInput.value = '';
-    selectedProfileName = null;
-    clearSearchButton.style.display = 'none';
-    styleProfileInput.focus(); // Return focus to the input field
-  });
+  // clearSearchButton.addEventListener('click', () => {
+  //   styleProfileInput.value = '';
+  //   selectedProfileName = null;
+  //   clearSearchButton.style.display = 'none';
+  //   styleProfileInput.focus(); // Return focus to the input field
+  // });
 
   // Listen for messages from the content script (via background.js)
   runtime.onMessage.addListener(message => {

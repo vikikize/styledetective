@@ -142,7 +142,25 @@ function renderCards(details, validationResultsPerElement = [], expectedStylesPr
           'border-top-left-radius': s.borderTopLeftRadius,
           'border-top-right-radius': s.borderTopRightRadius,
           'border-bottom-right-radius': s.borderBottomRightRadius,
-          'border-bottom-left-radius': s.borderBottomLeftRadius
+          'border-bottom-left-radius': s.borderBottomLeftRadius,
+
+          // Border widths
+          'border-top-width': s.borderTopWidth,
+          'border-right-width': s.borderRightWidth,
+          'border-bottom-width': s.borderBottomWidth,
+          'border-left-width': s.borderLeftWidth,
+
+          // Border colors
+          'border-top-color': s.borderTopColor,
+          'border-right-color': s.borderRightColor,
+          'border-bottom-color': s.borderBottomColor,
+          'border-left-color': s.borderLeftColor,
+
+          // Border styles
+          'border-top-style': s.borderTopStyle,
+          'border-right-style': s.borderRightStyle,
+          'border-bottom-style': s.borderBottomStyle,
+          'border-left-style': s.borderLeftStyle,
         }, validationResults, expectedProfile)}
 
         ${createSection('Typography', {
